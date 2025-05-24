@@ -1,3 +1,11 @@
+// Namespace utility
+export function namespace(obj: Record<string, any>) {
+  return {
+    __isNamespace: true as const,
+    value: obj,
+  };
+}
+
 // Implementation for procedure and createRpc
 import { configureMonoSchema } from '@voidhaus/monoschema';
 
@@ -20,8 +28,8 @@ export function procedure() {
 }
 
 class ProcedureBuilder<I = unknown, O = unknown> {
-  private _inputSchema: any;
-  private _outputSchema: any;
+  _inputSchema: any;
+  _outputSchema: any;
 
   input<TSchema extends Record<string, { $type: any }>>(schema: TSchema): ProcedureBuilder<InferSchema<TSchema>, O> {
     const next = new ProcedureBuilder<InferSchema<TSchema>, O>();
@@ -49,8 +57,51 @@ class ProcedureBuilder<I = unknown, O = unknown> {
 
 // createRpc implementation
 export function createRpc(config: { monoschema: ReturnType<typeof configureMonoSchema> }) {
-  return function(routerDef: Record<string, { inputSchema: any; outputSchema: any; resolver: (input: any) => any; _isProcedure: true }>) {
-    // You can extend this to actually register procedures, validate schemas, etc.
-    return routerDef;
+  // Helper to recursively find a procedure by path (dot notation)
+  function findProcedure(obj: any, path: string[]): any {
+    if (!obj || path.length === 0) return undefined;
+    if (path.length === 0) return undefined;
+    const [head, ...rest] = path;
+    if (typeof obj !== 'object' || obj === null) return undefined;
+    if (typeof head !== 'string' || !(head in obj)) return undefined;
+    const next: any = (obj as Record<string, any>)[head];
+    // If this is a namespace, unwrap its value
+    if (typeof next === 'object' && next !== null && next.__isNamespace && next.value) {
+      return findProcedure(next.value, rest);
+    }
+    if (rest.length === 0) return next;
+    return findProcedure(next, rest);
+  }
+
+  return function(routerDef: Record<string, any>) {
+    return {
+      ...routerDef,
+      callProcedure: (jsonRpc: {
+        jsonrpc: string;
+        method: string;
+        params: any;
+        id: number | string;
+      }) => {
+        const methodPath = jsonRpc.method.split('.');
+        const proc = findProcedure(routerDef, methodPath);
+        if (!proc || typeof proc.resolver !== 'function') {
+          return {
+            jsonrpc: jsonRpc.jsonrpc,
+            error: {
+              code: -32601,
+              message: 'Method not found',
+            },
+            id: jsonRpc.id,
+          };
+        }
+        // Optionally, validate input here using proc.inputSchema and config.monoschema
+        const result = proc.resolver(jsonRpc.params);
+        return {
+          jsonrpc: jsonRpc.jsonrpc,
+          result,
+          id: jsonRpc.id,
+        };
+      },
+    };
   };
 }

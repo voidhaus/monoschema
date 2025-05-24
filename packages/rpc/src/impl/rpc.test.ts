@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { createRpc, procedure } from '../index';
+import { createRpc, procedure, namespace } from '../index';
 import { configureMonoSchema } from '@voidhaus/monoschema';
 
 describe('RPC Tests', () => {
-  it('should set up RPC correctly', () => {
+  it('should set process basic request', () => {
     const router = createRpc({
       monoschema: configureMonoSchema(),
     })
-    router({
+    const myApp = router({
       hello:
         procedure()
           // input should be a monoschema schema
@@ -31,5 +31,68 @@ describe('RPC Tests', () => {
             };
           })
     })
+
+    const jsonRpc = {
+      jsonrpc: '2.0',
+      method: 'hello',
+      params: {
+        name: 'World',
+      },
+      id: 1,
+    }
+    const expectedOutput = {
+      jsonrpc: '2.0',
+      result: {
+        greeting: 'Hello, World!',
+      },
+      id: 1,
+    }
+
+    expect(myApp.callProcedure(jsonRpc)).toEqual(expectedOutput);
+  })
+
+  it('should process nested requests', () => {
+    const router = createRpc({
+      monoschema: configureMonoSchema(),
+    })
+    const myApp = router({
+      nested: namespace({
+        namespaces: namespace({
+          hello: procedure()
+            .input({
+              name: {
+                $type: String,
+              },
+            } as const)
+            .output({
+              greeting: {
+                $type: String,
+              },
+            } as const)
+            .resolve(({ name }) => {
+              return {
+                greeting: `Hello, ${name}!`,
+              };
+            }),
+        })
+      }),
+    })
+    const jsonRpc = {
+      jsonrpc: '2.0',
+      method: 'nested.namespaces.hello',
+      params: {
+        name: 'World',
+      },
+      id: 1,
+    }
+    const expectedOutput = {
+      jsonrpc: '2.0',
+      result: {
+        greeting: 'Hello, World!',
+      },
+      id: 1,
+    }
+    
+    expect(myApp.callProcedure(jsonRpc)).toEqual(expectedOutput);
   })
 })
