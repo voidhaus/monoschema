@@ -1,4 +1,4 @@
-import type { InferTypeFromMonoSchema, InferredPropertyPath, ValueAtPath } from '@voidhaus/monoschema';
+import type { InferredPropertyPath, ValueAtPath } from '@voidhaus/monoschema';
 
 // --- Type helpers ---
 // Use the property path types from monoschema
