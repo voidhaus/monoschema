@@ -564,4 +564,32 @@ describe('monoschema', () => {
       ],
     })
   })
+
+  it('should only run constraints on optional properties if they are present', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: {
+          $type: Number,
+          $optional: true,
+          $constraints: [
+            min(18),
+            max(30),
+          ],
+        },
+      },
+    } as const
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const validData: MySchemaType = {
+      name: "John Doe",
+      age: undefined, // Optional property
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema().validate(basicSchema)
+    const isValid = validate(validData)
+    // Check the validation results
+    expect(isValid).toStrictEqual({ valid: true, errors: [] })
+  })
 })
