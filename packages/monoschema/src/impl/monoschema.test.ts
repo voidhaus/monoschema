@@ -618,4 +618,29 @@ describe('monoschema', () => {
     // @ts-expect-error
     configureMonoSchema().validate(basicSchema)
   })
+
+  it('should allow updating of property values on inferred types', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: { $type: Number, $optional: true },
+        isActive: { $type: Boolean },
+        hobbies: { $type: [String] },
+      },
+    } as const;
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const validData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      isActive: true,
+      hobbies: ["reading", "gaming"],
+    }
+    // Update the properties
+    validData.name = "Jane Doe"; // Update name
+    validData.age = 28; // Update age
+    validData.isActive = false; // Update isActive
+    validData.hobbies.push("cooking"); // Add a hobby
+  })
 })

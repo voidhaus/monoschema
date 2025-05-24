@@ -17,7 +17,7 @@ export type InferTypeFromMonoSchema<T> =
           ? boolean
         : U extends typeof Object
           ? T extends { $properties: infer P }
-            ? { [K in keyof P]: P[K] extends { $optional: true }
+            ? { -readonly [K in keyof P]: P[K] extends { $optional: true }
                   ? InferTypeFromMonoSchema<P[K]> | undefined
                   : InferTypeFromMonoSchema<P[K]> }
             : unknown
