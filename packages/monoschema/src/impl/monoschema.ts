@@ -1,17 +1,7 @@
 // --- TypeScript type inference from MonoSchema ---
 import type { Constraint } from "./constraints";
 
-// Transformer type definition
-type TransformerObject = {
-  input: any;
-  output: any;
-  transform: (value: any) => any;
-};
-
-type TransformerFactory = () => TransformerObject;
-
-// Only allow valid transformer functions (that return proper transformer objects)
-export type Transformer = TransformerFactory;
+// (Transformer types removed from core. Plugins may define their own types.)
 // Recursively infer the TypeScript type from a MonoSchema definition
 // Utility type to avoid intersection with empty object
 type NonEmpty<T> = keyof T extends never ? {} : T;
@@ -74,24 +64,28 @@ type MonoSchemaType =
   | ArrayConstructor
   | ((...args: any[]) => { validate: (value: unknown) => any });
 
-type MonoSchemaProperty =
-  | {
+// MonoSchemaProperty is the extensible schema node type
+export type MonoSchemaProperty =
+  | ({
       $type: MonoSchemaType | readonly MonoSchemaType[];
       $optional?: boolean;
       $readonly?: boolean;
       $properties?: Record<string, MonoSchemaProperty>;
       $constraints?: readonly Constraint[];
-      $transformers?: readonly Transformer[];
-    }
+      // Extensible for plugin fields
+      [key: string]: unknown;
+    })
   | MonoSchema;
 
-type MonoSchema = {
+// MonoSchema is the root schema type, extensible for plugin fields
+export type MonoSchema = {
   $type: MonoSchemaType | readonly MonoSchemaType[];
   $optional?: boolean;
   $readonly?: boolean;
   $properties?: Record<string, MonoSchemaProperty>;
   $constraints?: readonly Constraint[];
-  $transformers?: readonly Transformer[];
+  // Extensible for plugin fields
+  [key: string]: unknown;
 };
 
 export type Plugin = {
@@ -542,17 +536,36 @@ function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
             const [, path, message] = match;
             // Extract the field value from the original input
             const fieldValue = getValueAtPropertyPath(value, path || '');
+            // Try to get the property schema at the error path
+            const propertySchema = getSchemaAtPropertyPath(schema, path || '');
             return {
               valid: false,
               errors: [{
                 path: path || '',
                 message: message || error.message,
-                expected: 'Number', // Default for stringToNumber transformer
-                received: 'String', // Default for stringToNumber transformer
+                expected: getTypeName((propertySchema as any)?.$type ?? (schema as any).$type),
+                received: getValueTypeName(fieldValue),
                 value: fieldValue,
               }],
               data: undefined,
             };
+// Helper function to get schema at a property path
+function getSchemaAtPropertyPath(schema: unknown, path: string): unknown {
+  if (!path || typeof schema !== 'object' || schema === null) {
+    return schema;
+  }
+  const keys = path.split('.');
+  let current: any = schema;
+  for (const key of keys) {
+    if (!current || typeof current !== 'object') return undefined;
+    if (current.$properties && key in current.$properties) {
+      current = current.$properties[key];
+    } else {
+      return undefined;
+    }
+  }
+  return current;
+}
           }
         }
         throw error;
