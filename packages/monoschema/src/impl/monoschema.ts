@@ -13,6 +13,9 @@ type TransformerFactory = () => TransformerObject;
 // Only allow valid transformer functions (that return proper transformer objects)
 type Transformer = TransformerFactory;
 // Recursively infer the TypeScript type from a MonoSchema definition
+// Utility type to avoid intersection with empty object
+type Merge<A, B> = [keyof B] extends [never] ? A : A & B;
+
 export type InferTypeFromMonoSchema<T> =
   T extends { $type: infer U }
     ? U extends { tsType: infer X }
@@ -31,15 +34,18 @@ export type InferTypeFromMonoSchema<T> =
           ? Date
         : U extends typeof Object
           ? T extends { $properties: infer P }
-            ? {
-                -readonly [K in keyof P as P[K] extends { $readonly: true } ? never : K]: P[K] extends { $optional: true }
-                  ? InferTypeFromMonoSchema<P[K]> | undefined
-                  : InferTypeFromMonoSchema<P[K]>
-              } & {
-                readonly [K in keyof P as P[K] extends { $readonly: true } ? K : never]: P[K] extends { $optional: true }
-                  ? InferTypeFromMonoSchema<P[K]> | undefined
-                  : InferTypeFromMonoSchema<P[K]>
-              }
+            ? Merge<
+                {
+                  -readonly [K in keyof P as P[K] extends { $readonly: true } ? never : K]: P[K] extends { $optional: true }
+                    ? InferTypeFromMonoSchema<P[K]> | undefined
+                    : InferTypeFromMonoSchema<P[K]>
+                },
+                {
+                  readonly [K in keyof P as P[K] extends { $readonly: true } ? K : never]: P[K] extends { $optional: true }
+                    ? InferTypeFromMonoSchema<P[K]> | undefined
+                    : InferTypeFromMonoSchema<P[K]>
+                }
+              >
             : unknown
           : unknown
     : unknown;
