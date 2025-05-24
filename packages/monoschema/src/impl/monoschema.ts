@@ -5,7 +5,9 @@ export type InferTypeFromMonoSchema<T> =
     ? U extends { tsType: infer X }
       ? X
       : U extends readonly [infer ArrType]
-        ? InferTypeFromMonoSchema<{ $type: ArrType }>[]
+        ? ArrType extends { tsType: infer X }
+          ? X[]
+          : InferTypeFromMonoSchema<{ $type: ArrType }> []
         : U extends typeof String
           ? string
         : U extends typeof Number
@@ -18,7 +20,7 @@ export type InferTypeFromMonoSchema<T> =
                   ? InferTypeFromMonoSchema<P[K]> | undefined
                   : InferTypeFromMonoSchema<P[K]> }
             : unknown
-        : unknown
+          : unknown
     : unknown;
 type MonoSchemaType =
   | StringConstructor
