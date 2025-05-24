@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { configureMonoSchema, MonoSchema, MonogSchemaPropertPath } from "./monoschema";
+import { configureMonoSchema, MonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema } from "./monoschema";
 
 describe('monoschema', () => {
   it('should allow creating a schema', () => {
@@ -214,5 +214,33 @@ describe('monoschema', () => {
     // Invalid usage (type-level, not runtime)
     // @ts-expect-error
     expect(() => myFunction(basicSchema, 'doesNotExist')).throws() // Invalid, should give a type error at compile time
+  })
+
+  it('should allow type intererence', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: { $type: Number, $optional: true },
+        isActive: { $type: Boolean },
+        hobbies: { $type: [String] },
+      },
+    } as const;
+    // MonoSchema type should be inferred correctly
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    const validData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      isActive: true,
+      hobbies: ["reading", "gaming"],
+    }
+    // Error here should be caught at compile time because age is the wrong type
+    const invalidData: MySchemaType = {
+      name: "John Doe",
+      // @ts-expect-error
+      age: "thirty", // Invalid type
+      isActive: true,
+      hobbies: ["reading", "gaming"],
+    }
   })
 })
