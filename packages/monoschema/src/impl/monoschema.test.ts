@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { configureMonoSchema, MonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema } from "./monoschema";
+import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema } from "./monoschema";
 
 describe('monoschema', () => {
   it('should allow creating a schema', () => {
     const monoSchema = configureMonoSchema()
-    const basicSchema: MonoSchema = {
+    const basicSchema = {
       $type: Object,
       $properties: {
         name: { $type: String },
@@ -12,9 +12,10 @@ describe('monoschema', () => {
         isActive: { $type: Boolean },
         hobbies: { $type: [String] },
       },
-    }
+    } as const
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
     // MonoSchema type should be inferred correctly
-    const validData = {
+    const validData: MySchemaType = {
       name: "John Doe",
       age: 30,
       isActive: true,
@@ -25,8 +26,9 @@ describe('monoschema', () => {
       isActive: true,
       hobbies: ["reading", "gaming"],
     }
-    const invalidData = {
+    const invalidData: MySchemaType = {
       name: "John Doe",
+      // @ts-expect-error
       age: "thirty", // Invalid type
       isActive: true,
       hobbies: ["reading", "gaming"],
@@ -55,7 +57,7 @@ describe('monoschema', () => {
 
   it('should allow creating a schema with nested objects', () => {
     const monoSchema = configureMonoSchema()
-    const nestedSchema: MonoSchema = {
+    const nestedSchema = {
       $type: Object,
       $properties: {
         name: { $type: String },
@@ -69,7 +71,7 @@ describe('monoschema', () => {
           },
         },
       },
-    }
+    } as const
     // MonoSchema type should be inferred correctly
     const validData = {
       name: "John Doe",
@@ -171,7 +173,7 @@ describe('monoschema', () => {
     const monoSchema = configureMonoSchema({
       plugins: [basicPlugin, basicPlugin2],
     })
-    const basicSchema: MonoSchema = {
+    const basicSchema = {
       $type: Object,
       $properties: {
         name: { $type: String },
@@ -179,7 +181,7 @@ describe('monoschema', () => {
         status: { $type: MyEnum },
         numStatus: { $type: myNumEnum },
       },
-    }
+    } as const
     // MonoSchema type should be inferred correctly
     const validData = {
       name: "John Doe",
@@ -371,5 +373,9 @@ describe('monoschema', () => {
       // @ts-expect-error
       numStatus: "notAString", // Invalid enum value (will be unknown)
     }
+
+    const validate = monoSchema.validate(basicSchema)
+    validate(validData)
+    validate(invalidData)
   })
 })

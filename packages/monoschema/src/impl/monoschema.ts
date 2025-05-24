@@ -30,14 +30,14 @@ type MonoSchemaType =
 
 type MonoSchemaProperty =
   | {
-      $type: MonoSchemaType | MonoSchemaType[];
+      $type: MonoSchemaType | readonly MonoSchemaType[];
       $optional?: boolean;
       $properties?: Record<string, MonoSchemaProperty>;
     }
   | MonoSchema;
 
-export type MonoSchema = {
-  $type: MonoSchemaType | MonoSchemaType[];
+type MonoSchema = {
+  $type: MonoSchemaType | readonly MonoSchemaType[];
   $optional?: boolean;
   $properties?: Record<string, MonoSchemaProperty>;
 };
