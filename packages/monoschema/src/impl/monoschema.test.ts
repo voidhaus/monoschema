@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema } from "./monoschema";
+import { max, min } from "./constraints";
 
 describe('monoschema', () => {
   it('should allow creating a schema', () => {
@@ -99,6 +100,7 @@ describe('monoschema', () => {
     // Validate the data against the schema
     const validate = monoSchema.validate(nestedSchema)
     const isValid = validate(validData)
+    // @ts-expect-error
     const isInvalid = validate(invalidData)
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [] })
@@ -471,5 +473,95 @@ describe('monoschema', () => {
       // @ts-expect-error
       numStatusArrayOfEnums: [1, 2, 4], // Invalid enum value
     }
+  })
+
+  it('should allow custom constraints', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: {
+          $type: Number,
+          $constraints: [
+            min(18),
+            max(30),
+          ],
+        },
+      },
+    } as const
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const validData: MySchemaType = {
+      name: "John Doe",
+      age: 25,
+    }
+    const invalidData: MySchemaType = {
+      name: "John Doe",
+      age: 35, // Invalid age
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema().validate(basicSchema)
+    const isValid = validate(validData)
+    const isInvalid = validate(invalidData)
+
+    // Check the validation results
+    expect(isValid).toStrictEqual({ valid: true, errors: [] })
+    expect(isInvalid).toStrictEqual({
+      valid: false,
+      errors: [
+        {
+          path: 'age',
+          message: 'Value 35 is greater than maximum 30',
+          expected: 'Number',
+          received: 'Number',
+          value: 35,
+        },
+      ],
+    })
+  })
+
+  it('should show multiple errors for multiple constraints', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: {
+          $type: Number,
+          $constraints: [
+            min(20),
+            max(18),
+          ],
+        },
+      },
+    } as const
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const invalidData: MySchemaType = {
+      name: "John Doe",
+      age: 19,
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema().validate(basicSchema)
+    const isInvalid = validate(invalidData)
+    // Check the validation results
+    expect(isInvalid).toStrictEqual({
+      valid: false,
+      errors: [
+        {
+          path: 'age',
+          message: 'Value 19 is less than minimum 20',
+          expected: 'Number',
+          received: 'Number',
+          value: 19,
+        },
+        {
+          path: 'age',
+          message: 'Value 19 is greater than maximum 18',
+          expected: 'Number',
+          received: 'Number',
+          value: 19,
+        },
+      ],
+    })
   })
 })

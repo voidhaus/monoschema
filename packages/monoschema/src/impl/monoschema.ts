@@ -35,6 +35,7 @@ type MonoSchemaProperty =
       $type: MonoSchemaType | readonly MonoSchemaType[];
       $optional?: boolean;
       $properties?: Record<string, MonoSchemaProperty>;
+      $constraints?: readonly any[];
     }
   | MonoSchema;
 
@@ -42,6 +43,7 @@ type MonoSchema = {
   $type: MonoSchemaType | readonly MonoSchemaType[];
   $optional?: boolean;
   $properties?: Record<string, MonoSchemaProperty>;
+  $constraints?: readonly any[];
 };
 
 type Plugin = {
@@ -140,7 +142,7 @@ function validateValue(
     return value
       .map((item, idx) =>
         validateValue(
-          { $type: itemType },
+          { $type: itemType, $constraints: (schema as any).$constraints },
           item,
           path ? `${path}.${idx}` : `${idx}`,
           plugins
@@ -213,6 +215,28 @@ function validateValue(
         },
       ];
     }
+    // Constraints for string
+    if (Array.isArray((schema as any).$constraints)) {
+      const constraints = (schema as any).$constraints;
+      const constraintErrors = constraints
+        .map((constraint: any) => {
+          if (typeof constraint.validate === "function") {
+            const valid = constraint.validate(value);
+            if (!valid) {
+              return {
+                path,
+                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
+                expected: "String",
+                received: getValueTypeName(value),
+                value,
+              };
+            }
+          }
+          return null;
+        })
+        .filter(Boolean);
+      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
+    }
     return [];
   }
   if (schema.$type === Number) {
@@ -226,6 +250,28 @@ function validateValue(
           value,
         },
       ];
+    }
+    // Constraints for number
+    if (Array.isArray((schema as any).$constraints)) {
+      const constraints = (schema as any).$constraints;
+      const constraintErrors = constraints
+        .map((constraint: any) => {
+          if (typeof constraint.validate === "function") {
+            const valid = constraint.validate(value);
+            if (!valid) {
+              return {
+                path,
+                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
+                expected: "Number",
+                received: getValueTypeName(value),
+                value,
+              };
+            }
+          }
+          return null;
+        })
+        .filter(Boolean);
+      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
     }
     return [];
   }
@@ -241,6 +287,28 @@ function validateValue(
         },
       ];
     }
+    // Constraints for boolean (if ever needed)
+    if (Array.isArray((schema as any).$constraints)) {
+      const constraints = (schema as any).$constraints;
+      const constraintErrors = constraints
+        .map((constraint: any) => {
+          if (typeof constraint.validate === "function") {
+            const valid = constraint.validate(value);
+            if (!valid) {
+              return {
+                path,
+                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
+                expected: "Boolean",
+                received: getValueTypeName(value),
+                value,
+              };
+            }
+          }
+          return null;
+        })
+        .filter(Boolean);
+      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
+    }
     return [];
   }
   if (schema.$type === Object) {
@@ -254,6 +322,28 @@ function validateValue(
           value,
         },
       ];
+    }
+    // Constraints for object (if ever needed)
+    if (Array.isArray((schema as any).$constraints)) {
+      const constraints = (schema as any).$constraints;
+      const constraintErrors = constraints
+        .map((constraint: any) => {
+          if (typeof constraint.validate === "function") {
+            const valid = constraint.validate(value);
+            if (!valid) {
+              return {
+                path,
+                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
+                expected: "Object",
+                received: getValueTypeName(value),
+                value,
+              };
+            }
+          }
+          return null;
+        })
+        .filter(Boolean);
+      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
     }
     // Validate properties
     if (schema.$properties) {
@@ -295,7 +385,7 @@ function validateValue(
 function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
   const plugins = options.plugins || [];
   return {
-    validate: (schema: MonoSchema) => (value: unknown): ValidationResult => {
+    validate: <T extends MonoSchema>(schema: T) => (value: InferTypeFromMonoSchema<T>): ValidationResult => {
       const errors = validateValue(schema, value, "", plugins);
       return {
         valid: errors.length === 0,
