@@ -26,7 +26,7 @@ See `./packages/monoschema/README.md` for the MonoSchema README.
     - [x] Allow use as a pre-validation step
     - [ ] Allow use as a standalone function - oustanding
 - [ ] Check monoschema-mongo support for custom types (e.g. enum)
-- [ ] Add monoschema-mongo support for ObjectID type
-- [ ] Add monoschema-mongo support for String<>ObjectID transformers
+- [x] Add monoschema-mongo support for ObjectID type
+- [x] Add monoschema-mongo support for String<>ObjectID transformers
 - [ ] Add monoschema-mongo support for updates
 - [ ] Create monoschema-express
