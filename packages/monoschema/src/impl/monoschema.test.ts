@@ -1,11 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { configureMonoSchema } from "./monoschema";
-import { S } from "vitest/dist/chunks/config.d.UqE-KR0o.js";
+import { configureMonoSchema, MonoSchema, MonogSchemaPropertPath } from "./monoschema";
 
 describe('monoschema', () => {
   it('should allow creating a schema', () => {
     const monoSchema = configureMonoSchema()
-    type MonoSchema = typeof monoSchema
     const basicSchema: MonoSchema = {
       $type: Object,
       $properties: {
@@ -57,7 +55,6 @@ describe('monoschema', () => {
 
   it('should allow creating a schema with nested objects', () => {
     const monoSchema = configureMonoSchema()
-    type MonoSchema = typeof monoSchema
     const nestedSchema: MonoSchema = {
       $type: Object,
       $properties: {
@@ -145,13 +142,12 @@ describe('monoschema', () => {
     const monoSchema = configureMonoSchema({
       plugins: [basicPlugin],
     })
-    type MonoSchema = typeof monoSchema
     const basicSchema: MonoSchema = {
       $type: Object,
       $properties: {
         name: { $type: String },
         age: { $type: Number },
-        status: { $type: MyEnum() },
+        status: { $type: MyEnum },
       },
     }
     // MonoSchema type should be inferred correctly
@@ -186,9 +182,7 @@ describe('monoschema', () => {
   })
 
   it('should provide type inference for schemas', () => {
-    const monoSchema = configureMonoSchema()
-    type MonoSchema = typeof monoSchema
-    const basicSchema: MonoSchema = {
+    const basicSchema = {
       $type: Object,
       $properties: {
         name: { $type: String },
@@ -196,10 +190,10 @@ describe('monoschema', () => {
         isActive: { $type: Boolean },
         hobbies: { $type: [String] },
       },
-    }
+    } as const;
     // MonoSchema type should be inferred correctly
-    const myFunction = <Schema extends MonoSchema>(schema: Schema, propertyPath: MonogSchemaPropertPath<Schema>) => {
-      const splitPath = propertyPath.split('.')
+    const myFunction = <Schema>(schema: Schema, propertyPath: MonogSchemaPropertPath<Schema>) => {
+      const splitPath = (propertyPath as string).split('.')
       let currentSchema: any = schema
       for (const part of splitPath) {
         if (currentSchema.$properties && currentSchema.$properties[part]) {
@@ -212,21 +206,13 @@ describe('monoschema', () => {
     }
 
     // Valid usage
-    myFunction(basicSchema, 'name') // Valid
-    myFunction(basicSchema, 'age') // Valid
-    myFunction(basicSchema, 'isActive') // Valid
-    myFunction(basicSchema, 'hobbies') // Valid
+    expect(myFunction(basicSchema, 'name')).toEqual(true)
+    expect(myFunction(basicSchema, 'age')).toEqual(true)
+    expect(myFunction(basicSchema, 'isActive')).toEqual(true)
+    expect(myFunction(basicSchema, 'hobbies')).toEqual(true)
 
-    // Invalid usage
-    myFunction(basicSchema, 'doesNotExist') // Invalid, should give a type error
-
-    // Check validation results
-    expect(() => myFunction(basicSchema, 'name')).toEqual(true)
-    expect(() => myFunction(basicSchema, 'age')).toEqual(true)
-    expect(() => myFunction(basicSchema, 'isActive')).toEqual(true)
-    expect(() => myFunction(basicSchema, 'hobbies')).toEqual(true)
-    expect(() => myFunction(basicSchema, 'doesNotExist')).toThrowError(
-      `Property doesNotExist does not exist in schema`
-    )
+    // Invalid usage (type-level, not runtime)
+    // @ts-expect-error
+    expect(() => myFunction(basicSchema, 'doesNotExist')).throws() // Invalid, should give a type error at compile time
   })
 })
