@@ -1,18 +1,24 @@
 // --- TypeScript type inference from MonoSchema ---
 // Recursively infer the TypeScript type from a MonoSchema definition
 export type InferTypeFromMonoSchema<T> =
-  T extends { $type: [infer ArrType] }
-    ? InferTypeFromMonoSchema<{ $type: ArrType }>[]
-    : T extends { $type: typeof String }
-      ? string
-    : T extends { $type: typeof Number }
-      ? number
-    : T extends { $type: typeof Boolean }
-      ? boolean
-    : T extends { $type: typeof Object, $properties: infer P }
-      ? { [K in keyof P]: P[K] extends { $optional: true }
-            ? InferTypeFromMonoSchema<P[K]> | undefined
-            : InferTypeFromMonoSchema<P[K]> }
+  T extends { $type: infer U }
+    ? U extends { tsType: infer X }
+      ? X
+      : U extends [infer ArrType]
+        ? InferTypeFromMonoSchema<{ $type: ArrType }>[]
+        : U extends typeof String
+          ? string
+        : U extends typeof Number
+          ? number
+        : U extends typeof Boolean
+          ? boolean
+        : U extends typeof Object
+          ? T extends { $properties: infer P }
+            ? { [K in keyof P]: P[K] extends { $optional: true }
+                  ? InferTypeFromMonoSchema<P[K]> | undefined
+                  : InferTypeFromMonoSchema<P[K]> }
+            : unknown
+        : unknown
     : unknown;
 type MonoSchemaType =
   | StringConstructor

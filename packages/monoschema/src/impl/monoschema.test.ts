@@ -282,4 +282,94 @@ describe('monoschema', () => {
       hobbies: ["reading", "gaming"],
     }
   })
+
+  it('should allow type intererence on extensions', () => {
+    const MyEnum = Object.assign(
+      () => ({
+        validate: (value: unknown) => {
+          const validValues = ["value1", "value2", "value3"];
+          if (!validValues.includes(value as string)) {
+            return {
+              valid: false,
+              errors: [
+                {
+                  message: `Invalid enum value. Expected one of ${validValues.join(", ")}`,
+                  expected: `Enum(${validValues.join(", ")})`,
+                  received: typeof value,
+                  value,
+                }
+              ]
+            }
+          }
+          return { valid: true, errors: [] }
+        },
+      }),
+      { tsType: null as unknown as "value1" | "value2" | "value3" }
+    );
+    const basicPlugin = {
+      name: "MyEnumPlugin",
+      description: "Plugin for MyEnum",
+      version: "1.0.0",
+      types: [MyEnum],
+    }
+    const MyNumEnum = Object.assign(
+      () => {
+        const validValues = [1, 2, 3];
+        const validate = (value: unknown) => {
+          if (!validValues.includes(value as number)) {
+            return {
+              valid: false,
+              errors: [
+                {
+                  message: `Invalid enum value. Expected one of ${validValues.join(", ")}`,
+                  expected: `Enum(${validValues.join(", ")})`,
+                  received: typeof value,
+                  value,
+                }
+              ]
+            };
+          }
+          return { valid: true, errors: [] };
+        };
+        return { validate };
+      },
+      { tsType: null as unknown as 1 | 2 | 3 }
+    );
+    const basicPlugin2 = {
+      name: "MyNumEnumPlugin",
+      description: "Plugin for MyNumEnum",
+      version: "1.0.0",
+      types: [MyNumEnum],
+    }
+    const monoSchema = configureMonoSchema({
+      plugins: [basicPlugin, basicPlugin2],
+    })
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: { $type: Number },
+        status: { $type: MyEnum },
+        numStatus: { $type: MyNumEnum },
+      },
+    } as const;
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const validData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      status: "value1",
+      numStatus: 1,
+    }
+    // Error here should be caught at compile time because age is the wrong type
+    const invalidData: MySchemaType = {
+      name: "John Doe",
+      // @ts-expect-error
+      age: "40", // should error: string is not assignable to number
+      // @ts-expect-error
+      status: 4,
+      // @ts-expect-error
+      numStatus: "notAString", // Invalid enum value (will be unknown)
+    }
+  })
 })
