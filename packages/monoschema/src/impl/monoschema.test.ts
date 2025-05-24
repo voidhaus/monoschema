@@ -1,8 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema } from "./monoschema";
-import { transformerPlugin } from "./transformerPlugin";
+import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema, Plugin } from "./monoschema";
 import { max, min } from "./constraints";
-import { stringToNumber } from "./transformers";
 
 describe('monoschema', () => {
   it('should allow creating a schema', () => {
@@ -701,103 +699,50 @@ describe('monoschema', () => {
     })
   })
 
-  it('should allow transforming data before validation when enabled', () => {
-    const basicSchema = {
-      $type: Object,
-      $properties: {
-        name: { $type: String },
-        age: {
-          $type: Number,
-          $transformers: [
-            stringToNumber,
-          ],
-        },
-        isActive: { $type: Boolean },
-      },
-    } as const;
-    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
-
-    const unknownInputData = {
-      name: "John Doe",
-      age: "30", // String input that should be transformed to a number
-      isActive: true,
-    }
-
-    const validate = configureMonoSchema({ plugins: [transformerPlugin] }).validate(basicSchema)
-    const isValid = validate(unknownInputData)
-
-    // isValid.data should be of type MySchemaType
-    isValid.data;
-
-    // Check the validation results
-    expect(isValid).toStrictEqual({
-      valid: true,
-      errors: [],
-      data: {
-        name: "John Doe",
-        age: 30, // Transformed from string to number
-        isActive: true,
-      },
-    })
-  })
-
-  it('should catch and report errors during transformation', () => {
-    const basicSchema = {
-      $type: Object,
-      $properties: {
-        name: { $type: String },
-        age: {
-          $type: Number,
-          $transformers: [
-            stringToNumber,
-          ],
-        },
-        isActive: { $type: Boolean },
-      },
-    } as const;
-    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
-    const invalidInputData = {
-      name: "John Doe",
-      age: "invalidNumber", // Invalid string that cannot be transformed to a number
-      isActive: true,
-    }
-    const validate = configureMonoSchema({ plugins: [transformerPlugin] }).validate(basicSchema)
-    const isInvalid = validate(invalidInputData)
-    // Check the validation results
-    expect(isInvalid).toStrictEqual({
-      valid: false,
-      errors: [
-        {
-          path: 'age',
-          message: 'Cannot convert "invalidNumber" to a number',
-          expected: 'Number',
-          received: 'String',
-          value: 'invalidNumber',
+  it('should support prevalidation with plugins', () => {
+    const MyPlugin: Plugin = {
+      name: "MyPlugin",
+      description: "A plugin for prevalidation",
+      version: "1.0.0",
+      types: [],
+      prevalidate: [
+        (value: unknown) => {
+          if (typeof value === 'string') {
+            return `Transformed: ${value}`;
+          }
+          return value;
         },
       ],
-      data: undefined,
+    }
+    const monoSchema = configureMonoSchema({
+      plugins: [MyPlugin],
     })
-  })
-
-  it('should throw an error if a transformer is not a valid transformer', () => {
     const basicSchema = {
       $type: Object,
       $properties: {
         name: { $type: String },
-        age: {
-          $type: Number,
-          $transformers: [
-            () => ({}), // Invalid transformer
-          ],
-        },
+        age: { $type: Number },
         isActive: { $type: Boolean },
       },
     } as const;
     type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
-    // Bypass type system for this negative test
-    const validate = configureMonoSchema({ plugins: [transformerPlugin] }).validate(basicSchema as any)
-    expect(() => validate({ name: "John Doe", age: "30", isActive: true })).toThrowError(
-      'Invalid transformer provided. Expected a function with input and output types defined, as well as a transform function.',
-    )
+
+    // MonoSchema type should be inferred correctly
+    const validData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      isActive: true,
+    }
+
+    // Validate the data against the schema
+    const validate = monoSchema.validate(basicSchema)
+    const isValid = validate(validData)
+
+    // Check the validation results
+    expect(isValid).toStrictEqual({ valid: true, errors: [], data: {
+      name: "Transformed: John Doe",
+      age: 30,
+      isActive: true,
+    }})
   })
 })

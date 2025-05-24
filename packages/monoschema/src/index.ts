@@ -3,5 +3,6 @@ export {
   type MonogSchemaPropertPath as MonoSchemaPropertyPath,
   type InferTypeFromMonoSchema,
   type InferredPropertyPath,
-  type ValueAtPath
+  type ValueAtPath,
+  type Plugin,
 } from "./impl/monoschema";

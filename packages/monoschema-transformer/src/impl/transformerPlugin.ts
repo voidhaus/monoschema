@@ -1,4 +1,4 @@
-// Transformer plugin for monoschema prevalidation
+import type { Plugin } from "@voidhaus/monoschema";
 
 // Define the types locally so this file/package is standalone
 export type TransformerObject = {
@@ -7,9 +7,6 @@ export type TransformerObject = {
   transform: (value: any) => any;
 };
 export type Transformer = () => TransformerObject;
-
-
-import type { Plugin } from "./monoschema";
 
 /**
  * This plugin applies $transformers in the schema as a prevalidation step.

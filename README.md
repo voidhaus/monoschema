@@ -21,10 +21,10 @@ See `./packages/monoschema/README.md` for the MonoSchema README.
 - [x] Change the inferred type so that properties decorated with $readonly are readonly on the type inference
 - [x] Add support for dates to monoschema
 - [x] Add the ability to transform types
-- [ ] Allow plugins to define pre-validation and post-validation steps (useful for reimplemented version of transform)
-- [ ] Move type transforming into an extension (in its own library @voidhaus/monoschema-transform)
-    - [ ] Allow use as a pre-validation step
-    - [ ] Allow use as a standalone function 
+- [x] Allow plugins to define pre-validation and post-validation steps (useful for reimplemented version of transform)
+- [x] Move type transforming into an extension (in its own library @voidhaus/monoschema-transform)
+    - [x] Allow use as a pre-validation step
+    - [ ] Allow use as a standalone function - oustanding
 - [ ] Check monoschema-mongo support for custom types (e.g. enum)
 - [ ] Add monoschema-mongo support for ObjectID type
 - [ ] Add monoschema-mongo support for String<>ObjectID transformers
