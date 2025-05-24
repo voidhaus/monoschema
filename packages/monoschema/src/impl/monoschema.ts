@@ -1,5 +1,17 @@
 // --- TypeScript type inference from MonoSchema ---
 import type { Constraint } from "./constraints";
+
+// Transformer type definition
+type TransformerObject = {
+  input: any;
+  output: any;
+  transform: (value: any) => any;
+};
+
+type TransformerFactory = () => TransformerObject;
+
+// Only allow valid transformer functions (that return proper transformer objects)
+type Transformer = TransformerFactory;
 // Recursively infer the TypeScript type from a MonoSchema definition
 export type InferTypeFromMonoSchema<T> =
   T extends { $type: infer U }
@@ -47,6 +59,7 @@ type MonoSchemaProperty =
       $readonly?: boolean;
       $properties?: Record<string, MonoSchemaProperty>;
       $constraints?: readonly Constraint[];
+      $transformers?: readonly Transformer[];
     }
   | MonoSchema;
 
@@ -56,6 +69,7 @@ type MonoSchema = {
   $readonly?: boolean;
   $properties?: Record<string, MonoSchemaProperty>;
   $constraints?: readonly Constraint[];
+  $transformers?: readonly Transformer[];
 };
 
 type Plugin = {
@@ -77,9 +91,10 @@ type ValidationError = {
   value: unknown;
 };
 
-type ValidationResult = {
+type ValidationResult<T = unknown> = {
   valid: boolean;
   errors: ValidationError[];
+  data?: T;
 };
 
 function getTypeName(type: any): string {
@@ -432,17 +447,146 @@ function validateValue(
   return [];
 }
 
+// Transform data using transformers
+function transformValue(
+  schema: MonoSchemaProperty,
+  value: unknown,
+  path: string,
+  plugins: Plugin[] = []
+): unknown {
+  // Handle array of types (for arrays)
+  if (Array.isArray(schema.$type)) {
+    if (!Array.isArray(value)) {
+      return value; // Let validation handle the error
+    }
+    // Transform each item in the array
+    const itemType = schema.$type[0];
+    if (itemType === undefined) {
+      return value; // Let validation handle the error
+    }
+    return value.map((item, idx) =>
+      transformValue(
+        { $type: itemType, $transformers: (schema as any).$transformers },
+        item,
+        path ? `${path}.${idx}` : `${idx}`,
+        plugins
+      )
+    );
+  }
+
+  // Handle object properties
+  if (schema.$type === Object && (schema as any).$properties) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+      return value; // Let validation handle the error
+    }
+    const transformedObject: any = {};
+    const properties = (schema as any).$properties;
+    for (const [key, propSchema] of Object.entries(properties)) {
+      const propValue = (value as any)[key];
+      const propPath = path ? `${path}.${key}` : key;
+      transformedObject[key] = transformValue(propSchema as MonoSchemaProperty, propValue, propPath, plugins);
+    }
+    return transformedObject;
+  }
+
+  // Apply transformers if available
+  if (Array.isArray((schema as any).$transformers)) {
+    const transformers = (schema as any).$transformers;
+    let transformedValue = value;
+    
+    for (const transformer of transformers) {
+      // Validate transformer structure
+      if (typeof transformer !== 'function') {
+        throw new Error('Invalid transformer provided. Expected a function with input and output types defined, as well as a transform function.');
+      }
+      
+      const transformerInstance = transformer();
+      if (!transformerInstance || 
+          typeof transformerInstance.transform !== 'function' ||
+          !transformerInstance.input ||
+          !transformerInstance.output) {
+        throw new Error('Invalid transformer provided. Expected a function with input and output types defined, as well as a transform function.');
+      }
+      
+      try {
+        transformedValue = transformerInstance.transform(transformedValue);
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`${path}: ${error.message}`);
+        }
+        throw error;
+      }
+    }
+    return transformedValue;
+  }
+
+  return value;
+}
+
 function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
   const plugins = options.plugins || [];
   return {
-    validate: <T extends MonoSchema>(schema: T) => (value: InferTypeFromMonoSchema<T>): ValidationResult => {
+    validate: <T extends MonoSchema>(schema: T) => (value: InferTypeFromMonoSchema<T>): ValidationResult<InferTypeFromMonoSchema<T>> => {
       const errors = validateValue(schema, value, "", plugins);
       return {
         valid: errors.length === 0,
         errors,
+        data: errors.length === 0 ? value : undefined,
       };
     },
+    transformAndValidate: <T extends MonoSchema>(schema: T) => (value: unknown): ValidationResult<InferTypeFromMonoSchema<T>> => {
+      try {
+        const transformedValue = transformValue(schema, value, "", plugins);
+        const errors = validateValue(schema, transformedValue, "", plugins);
+        return {
+          valid: errors.length === 0,
+          errors,
+          data: errors.length === 0 ? (transformedValue as InferTypeFromMonoSchema<T>) : undefined,
+        };
+      } catch (error) {
+        if (error instanceof Error) {
+          // Parse transformation errors
+          const match = error.message.match(/^(.+?): (.+)$/);
+          if (match) {
+            const [, path, message] = match;
+            // Extract the field value from the original input
+            const fieldValue = getValueAtPropertyPath(value, path || '');
+            return {
+              valid: false,
+              errors: [{
+                path: path || '',
+                message: message || error.message,
+                expected: 'Number', // Default for stringToNumber transformer
+                received: 'String', // Default for stringToNumber transformer
+                value: fieldValue,
+              }],
+              data: undefined,
+            };
+          }
+        }
+        throw error;
+      }
+    },
   };
+}
+
+// Helper function to get value at a property path
+function getValueAtPropertyPath(obj: unknown, path: string): unknown {
+  if (!path || typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+  
+  const keys = path.split('.');
+  let current = obj;
+  
+  for (const key of keys) {
+    if (typeof current !== 'object' || current === null || Array.isArray(current)) {
+      return undefined;
+    }
+    current = (current as any)[key];
+  }
+  
+  return current;
 }
 
 // --- Type inference for property paths ---
