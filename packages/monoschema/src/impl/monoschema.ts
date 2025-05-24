@@ -4,7 +4,7 @@ export type InferTypeFromMonoSchema<T> =
   T extends { $type: infer U }
     ? U extends { tsType: infer X }
       ? X
-      : U extends [infer ArrType]
+      : U extends readonly [infer ArrType]
         ? InferTypeFromMonoSchema<{ $type: ArrType }>[]
         : U extends typeof String
           ? string

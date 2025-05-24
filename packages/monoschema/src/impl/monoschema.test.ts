@@ -11,6 +11,7 @@ describe('monoschema', () => {
         age: { $type: Number, $optional: true },
         isActive: { $type: Boolean },
         hobbies: { $type: [String] },
+        favouriteNumbers: { $type: [Number] },
       },
     } as const
     type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
@@ -20,11 +21,14 @@ describe('monoschema', () => {
       age: 30,
       isActive: true,
       hobbies: ["reading", "gaming"],
+      favouriteNumbers: [1, 2, 3],
     }
-    const validOptionalData = {
+    const validOptionalData: MySchemaType = {
       name: "John Doe",
+      age: undefined,
       isActive: true,
       hobbies: ["reading", "gaming"],
+      favouriteNumbers: [1, 2, 3],
     }
     const invalidData: MySchemaType = {
       name: "John Doe",
@@ -32,6 +36,7 @@ describe('monoschema', () => {
       age: "thirty", // Invalid type
       isActive: true,
       hobbies: ["reading", "gaming"],
+      favouriteNumbers: [1, 2, 3],
     }
     // Validate the data against the schema
     const validate = monoSchema.validate(basicSchema)
