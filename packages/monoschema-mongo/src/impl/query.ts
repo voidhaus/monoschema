@@ -1,12 +1,33 @@
-import type { InferTypeFromMonoSchema, MonoSchemaPropertyPath } from '@voidhaus/monoschema';
+import type { InferTypeFromMonoSchema } from '@voidhaus/monoschema';
 
 // --- Type helpers ---
-type PropertyPath<T> = MonoSchemaPropertyPath<T>;
-type ValueAtPath<T, P extends string> =
-  P extends keyof T ? T[P] :
-  P extends `${infer K}.${infer Rest}` ?
-    K extends keyof T ? ValueAtPath<T[K], Rest> : never
+// Helper: Join property keys for nested paths
+type Join<K, P> = K extends string 
+  ? P extends string
+    ? `${K}.${P}`
+    : never
   : never;
+
+// Recursively get all property paths from an inferred TypeScript type (limited depth)
+type PropertyPathHelper<T, Depth extends readonly any[] = []> = 
+  Depth['length'] extends 3 ? never : // Limit recursion depth to 3
+  T extends Record<string, any>
+    ? {
+        [K in keyof T]: K extends string
+          ? T[K] extends Record<string, any>
+            ? K | Join<K, PropertyPathHelper<T[K], [...Depth, any]>>
+            : K
+          : never;
+      }[keyof T]
+    : never;
+
+// Extract only string keys from keyof T
+type StringKeys<T> = Extract<keyof T, string>;
+
+type PropertyPath<T> = PropertyPathHelper<T> extends string
+  ? PropertyPathHelper<T>
+  : StringKeys<T>;
+type ValueAtPath<T, P extends string> = any;
 
 // --- Query Operator Types ---
 type QueryOp<T> = { toMongo(): any };

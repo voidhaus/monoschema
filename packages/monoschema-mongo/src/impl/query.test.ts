@@ -24,8 +24,8 @@ const testSchema = {
     location: {
       $type: Object,
       $properties: {
-        type: { $type: String, $default: 'Point' },
-        coordinates: { $type: Array, $items: Number },
+        type: { $type: String },
+        coordinates: { $type: [Number] },
       },
     },
   },
@@ -41,9 +41,9 @@ describe('Query functions', () => {
     )
 
     // This query should not be valid with the TestSchemaType
-    // @ts-expect-error - 'location' is not a valid field in TestSchemaType
     query<TestSchemaType>(
-      eq('location', 'some value'),
+      // @ts-expect-error
+      eq('gender', 'some value'),
       gt('age', 30),
     )
   })
