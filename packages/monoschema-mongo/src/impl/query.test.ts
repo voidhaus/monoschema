@@ -409,11 +409,6 @@ describe('Query functions', () => {
       ),
     )
     const queryObject = queryO.toMongo();
-    // Debug output
-    // eslint-disable-next-line no-console
-    console.log('Actual:', JSON.stringify(queryObject, null, 2));
-    // eslint-disable-next-line no-console
-    console.log('Expected:', JSON.stringify(expectedQuery, null, 2));
     expect(queryObject).toEqual(expectedQuery);
   })
 
@@ -504,5 +499,32 @@ describe('Query functions', () => {
     const queryObject = queryO.toMongo();
 
     expect(queryObject).toEqual(expectedQuery);
+  })
+
+  it('should enforce correct value types based on schema', () => {
+    // These should work - correct types within query context
+    query<TestSchemaType>(
+      eq('name', 'John'),     // string for string field
+      gt('age', 30),          // number for number field  
+      eq('address.street', 'Main St'), // string for nested string field
+    )
+
+    // These should fail with type errors - wrong types
+    query<TestSchemaType>(
+      // @ts-expect-error - number for string field
+      eq('name', 123),
+      // @ts-expect-error - string for number field  
+      gt('age', '30'),
+      // @ts-expect-error - number for nested string field
+      eq('address.street', 456),
+    )
+
+    // Explicit type parameters also work and enforce constraints
+    const explicitEq = eq<TestSchemaType, 'name'>('name', 'John'); // Works
+    const explicitGt = gt<TestSchemaType, 'age'>('age', 30); // Works
+    
+    // These would fail compilation if uncommented:
+    // const badEq = eq<TestSchemaType, 'name'>('name', 123); // Error: number not assignable to string
+    // const badGt = gt<TestSchemaType, 'age'>('age', '30'); // Error: string not assignable to number
   })
 })
