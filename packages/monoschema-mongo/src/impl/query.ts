@@ -162,8 +162,47 @@ function matchesRegex<T, P extends PropertyPath<T>>(field: P, pattern: string, o
 function and<T>(...conds: QueryOp<T>[]): QueryOp<T> {
   return {
     toMongo() {
-      // Only include unique objects in $and
-      return { $and: conds.map(c => c.toMongo()) };
+      // Merge conditions on the same field within this $and block
+      const fieldOps: Record<string, any[]> = {};
+      const logicalOps: any[] = [];
+      
+      for (const cond of conds) {
+        const mongo = cond.toMongo();
+        // Check if this is a logical operator
+        if ('$and' in mongo || '$or' in mongo || '$nor' in mongo || '$text' in mongo) {
+          logicalOps.push(mongo);
+        } else {
+          // Field-level condition
+          for (const field in mongo) {
+            if (!fieldOps[field]) fieldOps[field] = [];
+            fieldOps[field].push(mongo[field]);
+          }
+        }
+      }
+      
+      const result: any[] = [];
+      
+      // Add merged field conditions
+      for (const field in fieldOps) {
+        const conditions = fieldOps[field] ?? [];
+        if (conditions.length === 1) {
+          result.push({ [field]: conditions[0] });
+        } else if (conditions.length > 1) {
+          // Merge all operator objects for this field
+          let merged: any = {};
+          for (const cond of conditions) {
+            if (typeof cond === 'object' && cond !== null && !Array.isArray(cond)) {
+              merged = { ...merged, ...cond };
+            }
+          }
+          result.push({ [field]: merged });
+        }
+      }
+      
+      // Add logical operators
+      result.push(...logicalOps);
+      
+      return { $and: result };
     },
     __op: '$and',
     __conds: conds,
