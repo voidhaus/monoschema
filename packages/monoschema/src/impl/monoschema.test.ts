@@ -627,6 +627,7 @@ describe('monoschema', () => {
         age: { $type: Number, $optional: true },
         isActive: { $type: Boolean },
         hobbies: { $type: [String] },
+        hasOptedInMarketing: { $type: Boolean, $readonly: true }
       },
     } as const;
     type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
@@ -636,11 +637,14 @@ describe('monoschema', () => {
       age: 30,
       isActive: true,
       hobbies: ["reading", "gaming"],
+      hasOptedInMarketing: true, // Readonly property
     }
     // Update the properties
     validData.name = "Jane Doe"; // Update name
     validData.age = 28; // Update age
     validData.isActive = false; // Update isActive
     validData.hobbies.push("cooking"); // Add a hobby
+    // @ts-expect-error
+    validData.hasOptedInMarketing = false; // Attempt to update readonly property (should error)
   })
 })

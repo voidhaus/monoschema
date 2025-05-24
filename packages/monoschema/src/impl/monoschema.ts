@@ -17,9 +17,15 @@ export type InferTypeFromMonoSchema<T> =
           ? boolean
         : U extends typeof Object
           ? T extends { $properties: infer P }
-            ? { -readonly [K in keyof P]: P[K] extends { $optional: true }
+            ? {
+                -readonly [K in keyof P as P[K] extends { $readonly: true } ? never : K]: P[K] extends { $optional: true }
                   ? InferTypeFromMonoSchema<P[K]> | undefined
-                  : InferTypeFromMonoSchema<P[K]> }
+                  : InferTypeFromMonoSchema<P[K]>
+              } & {
+                readonly [K in keyof P as P[K] extends { $readonly: true } ? K : never]: P[K] extends { $optional: true }
+                  ? InferTypeFromMonoSchema<P[K]> | undefined
+                  : InferTypeFromMonoSchema<P[K]>
+              }
             : unknown
           : unknown
     : unknown;
@@ -35,6 +41,7 @@ type MonoSchemaProperty =
   | {
       $type: MonoSchemaType | readonly MonoSchemaType[];
       $optional?: boolean;
+      $readonly?: boolean;
       $properties?: Record<string, MonoSchemaProperty>;
       $constraints?: readonly Constraint[];
     }
@@ -43,6 +50,7 @@ type MonoSchemaProperty =
 type MonoSchema = {
   $type: MonoSchemaType | readonly MonoSchemaType[];
   $optional?: boolean;
+  $readonly?: boolean;
   $properties?: Record<string, MonoSchemaProperty>;
   $constraints?: readonly Constraint[];
 };
