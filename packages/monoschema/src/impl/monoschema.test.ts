@@ -640,7 +640,6 @@ describe('monoschema', () => {
     // MonoSchema type should be inferred correctly
     const validData: MySchemaType = {
       name: "John Doe",
-      age: 30,
       isActive: true,
       hobbies: ["reading", "gaming"],
       hasOptedInMarketing: true, // Readonly property

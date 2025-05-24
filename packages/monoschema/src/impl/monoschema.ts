@@ -14,7 +14,7 @@ type TransformerFactory = () => TransformerObject;
 type Transformer = TransformerFactory;
 // Recursively infer the TypeScript type from a MonoSchema definition
 // Utility type to avoid intersection with empty object
-type Merge<A, B> = [keyof B] extends [never] ? A : A & B;
+type NonEmpty<T> = keyof T extends never ? {} : T;
 
 export type InferTypeFromMonoSchema<T> =
   T extends { $type: infer U }
@@ -34,18 +34,34 @@ export type InferTypeFromMonoSchema<T> =
           ? Date
         : U extends typeof Object
           ? T extends { $properties: infer P }
-            ? Merge<
-                {
-                  -readonly [K in keyof P as P[K] extends { $readonly: true } ? never : K]: P[K] extends { $optional: true }
-                    ? InferTypeFromMonoSchema<P[K]> | undefined
-                    : InferTypeFromMonoSchema<P[K]>
-                },
-                {
-                  readonly [K in keyof P as P[K] extends { $readonly: true } ? K : never]: P[K] extends { $optional: true }
-                    ? InferTypeFromMonoSchema<P[K]> | undefined
-                    : InferTypeFromMonoSchema<P[K]>
-                }
-              >
+            ? (
+                NonEmpty<{
+                  -readonly [K in keyof P as
+                    P[K] extends { $readonly: true } ? never :
+                    P[K] extends { $optional: true } ? never : K
+                  ]: InferTypeFromMonoSchema<P[K]>
+                }> &
+                NonEmpty<{
+                  -readonly [K in keyof P as
+                    P[K] extends { $readonly: true } ? never :
+                    P[K] extends { $optional: true } ? K : never
+                  ]?: InferTypeFromMonoSchema<P[K]>
+                }> &
+                NonEmpty<{
+                  readonly [K in keyof P as
+                    P[K] extends { $readonly: true } ?
+                      P[K] extends { $optional: true } ? never : K
+                    : never
+                  ]: InferTypeFromMonoSchema<P[K]>
+                }> &
+                NonEmpty<{
+                  readonly [K in keyof P as
+                    P[K] extends { $readonly: true } ?
+                      P[K] extends { $optional: true } ? K : never
+                    : never
+                  ]?: InferTypeFromMonoSchema<P[K]>
+                }>
+              )
             : unknown
           : unknown
     : unknown;
