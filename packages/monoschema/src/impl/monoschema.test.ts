@@ -139,8 +139,37 @@ describe('monoschema', () => {
       version: "1.0.0",
       types: [MyEnum],
     }
+    const myNumEnum = () => {
+      const validValues = [1, 2, 3]
+
+      const validate = (value: unknown) => {
+        if (!validValues.includes(value as number)) {
+          return {
+            valid: false,
+            errors: [
+              {
+                message: `Invalid enum value. Expected one of ${validValues.join(", ")}`,
+                expected: `Enum(${validValues.join(", ")})`,
+                received: typeof value,
+                value,
+              }
+            ]
+          }
+        }
+      }
+
+      return {
+        validate,
+      }
+    }
+    const basicPlugin2 = {
+      name: "MyNumEnumPlugin",
+      description: "Plugin for MyNumEnum",
+      version: "1.0.0",
+      types: [myNumEnum],
+    }
     const monoSchema = configureMonoSchema({
-      plugins: [basicPlugin],
+      plugins: [basicPlugin, basicPlugin2],
     })
     const basicSchema: MonoSchema = {
       $type: Object,
@@ -148,6 +177,7 @@ describe('monoschema', () => {
         name: { $type: String },
         age: { $type: Number },
         status: { $type: MyEnum },
+        numStatus: { $type: myNumEnum },
       },
     }
     // MonoSchema type should be inferred correctly
@@ -155,11 +185,13 @@ describe('monoschema', () => {
       name: "John Doe",
       age: 30,
       status: "value1",
+      numStatus: 1,
     }
     const invalidData = {
       name: "John Doe",
       age: 30,
       status: "invalidValue", // Invalid enum value
+      numStatus: 4, // Invalid enum value
     }
     // Validate the data against the schema
     const validate = monoSchema.validate(basicSchema)
@@ -176,6 +208,13 @@ describe('monoschema', () => {
           expected: 'Enum(value1, value2, value3)',
           received: 'String',
           value: 'invalidValue',
+        },
+        {
+          path: 'numStatus',
+          message: 'Invalid enum value. Expected one of 1, 2, 3',
+          expected: 'Enum(1, 2, 3)',
+          received: 'Number',
+          value: 4,
         },
       ],
     })
