@@ -1,4 +1,5 @@
 // --- TypeScript type inference from MonoSchema ---
+import type { Constraint } from "./constraints";
 // Recursively infer the TypeScript type from a MonoSchema definition
 export type InferTypeFromMonoSchema<T> =
   T extends { $type: infer U }
@@ -35,7 +36,7 @@ type MonoSchemaProperty =
       $type: MonoSchemaType | readonly MonoSchemaType[];
       $optional?: boolean;
       $properties?: Record<string, MonoSchemaProperty>;
-      $constraints?: readonly any[];
+      $constraints?: readonly Constraint[];
     }
   | MonoSchema;
 
@@ -43,7 +44,7 @@ type MonoSchema = {
   $type: MonoSchemaType | readonly MonoSchemaType[];
   $optional?: boolean;
   $properties?: Record<string, MonoSchemaProperty>;
-  $constraints?: readonly any[];
+  $constraints?: readonly Constraint[];
 };
 
 type Plugin = {

@@ -592,4 +592,30 @@ describe('monoschema', () => {
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [] })
   })
+
+  it('should give a type error for invalid constraint values', () => {
+    const invalidConstraint = () => {}
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: {
+          $type: Number,
+          $constraints: [
+            invalidConstraint, // Invalid constraint
+          ],
+        },
+      },
+    } as const
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const validData: MySchemaType = {
+      name: "John Doe",
+      age: 25,
+    }
+    // Validate the data against the schema
+    // Expect a type error because invalidConstraint is not a valid constraint
+    // @ts-expect-error
+    configureMonoSchema().validate(basicSchema)
+  })
 })
