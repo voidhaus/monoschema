@@ -647,4 +647,46 @@ describe('monoschema', () => {
     // @ts-expect-error
     validData.hasOptedInMarketing = false; // Attempt to update readonly property (should error)
   })
+
+  it('should support dates', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        birthDate: { $type: Date },
+        lastLogin: { $type: Date, $optional: true },
+      },
+    } as const;
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const validData: MySchemaType = {
+      name: "John Doe",
+      birthDate: new Date("1990-01-01"),
+      lastLogin: new Date("2023-10-01"),
+    }
+    const invalidData: MySchemaType = {
+      name: "John Doe",
+      // @ts-expect-error
+      birthDate: "1990-01-01", // Invalid type
+      lastLogin: new Date("2023-10-01"),
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema().validate(basicSchema)
+    const isValid = validate(validData)
+    const isInvalid = validate(invalidData)
+    // Check the validation results
+    expect(isValid).toStrictEqual({ valid: true, errors: [] })
+    expect(isInvalid).toStrictEqual({
+      valid: false,
+      errors: [
+        {
+          path: 'birthDate',
+          message: 'Expected type Date, but received String',
+          expected: 'Date',
+          received: 'String',
+          value: '1990-01-01',
+        },
+      ],
+    })
+  })
 })

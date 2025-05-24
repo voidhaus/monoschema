@@ -15,6 +15,8 @@ export type InferTypeFromMonoSchema<T> =
           ? number
         : U extends typeof Boolean
           ? boolean
+        : U extends typeof Date
+          ? Date
         : U extends typeof Object
           ? T extends { $properties: infer P }
             ? {
@@ -33,6 +35,7 @@ type MonoSchemaType =
   | StringConstructor
   | NumberConstructor
   | BooleanConstructor
+  | DateConstructor
   | ObjectConstructor
   | ArrayConstructor
   | ((...args: any[]) => { validate: (value: unknown) => any });
@@ -84,6 +87,7 @@ function getTypeName(type: any): string {
     type === String ||
     type === Number ||
     type === Boolean ||
+    type === Date ||
     type === Object ||
     type === Array
   ) {
@@ -113,7 +117,7 @@ function getValueTypeName(value: unknown): string {
 }
 
 function isCustomType(type: any): boolean {
-  return typeof type === "function" && ![String, Number, Boolean, Object, Array].includes(type);
+  return typeof type === "function" && ![String, Number, Boolean, Date, Object, Array].includes(type);
 }
 
 function validateValue(
@@ -179,6 +183,7 @@ function validateValue(
       schema.$type !== String &&
       schema.$type !== Number &&
       schema.$type !== Boolean &&
+      schema.$type !== Date &&
       schema.$type !== Object &&
       schema.$type !== Array
     ) {
@@ -308,6 +313,42 @@ function validateValue(
                 path,
                 message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
                 expected: "Boolean",
+                received: getValueTypeName(value),
+                value,
+              };
+            }
+          }
+          return null;
+        })
+        .filter(Boolean);
+      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
+    }
+    return [];
+  }
+  if (schema.$type === Date) {
+    if (!(value instanceof Date)) {
+      return [
+        {
+          path,
+          message: `Expected type Date, but received ${getValueTypeName(value)}`,
+          expected: "Date",
+          received: getValueTypeName(value),
+          value,
+        },
+      ];
+    }
+    // Constraints for date (if ever needed)
+    if (Array.isArray((schema as any).$constraints)) {
+      const constraints = (schema as any).$constraints;
+      const constraintErrors = constraints
+        .map((constraint: any) => {
+          if (typeof constraint.validate === "function") {
+            const valid = constraint.validate(value);
+            if (!valid) {
+              return {
+                path,
+                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
+                expected: "Date",
                 received: getValueTypeName(value),
                 value,
               };

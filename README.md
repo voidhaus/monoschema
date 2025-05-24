@@ -19,6 +19,7 @@ See `./packages/monoschema/README.md` for the MonoSchema README.
 
 - [x] Change the inferred type so that properties are no longer readonly
 - [x] Change the inferred type so that properties decorated with $readonly are readonly on the type inference
-- [ ] Add support for dates to monoschema
+- [x] Add support for dates to monoschema
+- [ ] Check mongoschema-mongo support for custom types (e.g. enum)
 - [ ] Add mongoschema-mongo support for updates
 - [ ] Create monoschema-express
