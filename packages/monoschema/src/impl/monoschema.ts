@@ -11,7 +11,7 @@ type TransformerObject = {
 type TransformerFactory = () => TransformerObject;
 
 // Only allow valid transformer functions (that return proper transformer objects)
-type Transformer = TransformerFactory;
+export type Transformer = TransformerFactory;
 // Recursively infer the TypeScript type from a MonoSchema definition
 // Utility type to avoid intersection with empty object
 type NonEmpty<T> = keyof T extends never ? {} : T;
@@ -94,11 +94,16 @@ type MonoSchema = {
   $transformers?: readonly Transformer[];
 };
 
-type Plugin = {
+export type Plugin = {
   name: string;
   description?: string;
   version?: string;
   types: Array<MonoSchemaType>;
+  prevalidate?: Array<(
+    value: unknown,
+    schema: MonoSchemaProperty,
+    path: string
+  ) => unknown>;
 };
 
 type ConfigureMonoSchemaOptions = {
@@ -469,101 +474,65 @@ function validateValue(
   return [];
 }
 
-// Transform data using transformers
-function transformValue(
+
+// Recursively run all plugin prevalidation functions for every property
+function runPrevalidation(
   schema: MonoSchemaProperty,
   value: unknown,
   path: string,
-  plugins: Plugin[] = []
+  plugins: Plugin[]
 ): unknown {
-  // Handle array of types (for arrays)
-  if (Array.isArray(schema.$type)) {
-    if (!Array.isArray(value)) {
-      return value; // Let validation handle the error
+  let result = value;
+  // Run all plugin prevalidate functions for this property
+  for (const plugin of plugins) {
+    if (plugin.prevalidate) {
+      for (const fn of plugin.prevalidate) {
+        result = fn(result, schema, path);
+      }
     }
-    // Transform each item in the array
+  }
+  // Recurse for objects and arrays
+  if (Array.isArray(schema.$type) && Array.isArray(result)) {
     const itemType = schema.$type[0];
-    if (itemType === undefined) {
-      return value; // Let validation handle the error
-    }
-    return value.map((item, idx) =>
-      transformValue(
-        { $type: itemType, $transformers: (schema as any).$transformers },
+    return result.map((item, idx) =>
+      runPrevalidation(
+        { $type: itemType, $constraints: (schema as any).$constraints },
         item,
         path ? `${path}.${idx}` : `${idx}`,
         plugins
       )
     );
   }
-
-  // Handle object properties
-  if (schema.$type === Object && (schema as any).$properties) {
-    if (typeof value !== "object" || value === null || Array.isArray(value)) {
-      return value; // Let validation handle the error
+  if (schema.$type === Object && schema.$properties && typeof result === 'object' && result !== null && !Array.isArray(result)) {
+    const out: any = { ...result };
+    for (const key in schema.$properties) {
+      if (Object.prototype.hasOwnProperty.call(schema.$properties, key)) {
+        const propSchema = schema.$properties[key];
+        if (!propSchema) continue;
+        out[key] = runPrevalidation(
+          propSchema,
+          (result as any)[key],
+          path ? `${path}.${key}` : key,
+          plugins
+        );
+      }
     }
-    const transformedObject: any = {};
-    const properties = (schema as any).$properties;
-    for (const [key, propSchema] of Object.entries(properties)) {
-      const propValue = (value as any)[key];
-      const propPath = path ? `${path}.${key}` : key;
-      transformedObject[key] = transformValue(propSchema as MonoSchemaProperty, propValue, propPath, plugins);
-    }
-    return transformedObject;
+    return out;
   }
-
-  // Apply transformers if available
-  if (Array.isArray((schema as any).$transformers)) {
-    const transformers = (schema as any).$transformers;
-    let transformedValue = value;
-    
-    for (const transformer of transformers) {
-      // Validate transformer structure
-      if (typeof transformer !== 'function') {
-        throw new Error('Invalid transformer provided. Expected a function with input and output types defined, as well as a transform function.');
-      }
-      
-      const transformerInstance = transformer();
-      if (!transformerInstance || 
-          typeof transformerInstance.transform !== 'function' ||
-          !transformerInstance.input ||
-          !transformerInstance.output) {
-        throw new Error('Invalid transformer provided. Expected a function with input and output types defined, as well as a transform function.');
-      }
-      
-      try {
-        transformedValue = transformerInstance.transform(transformedValue);
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`${path}: ${error.message}`);
-        }
-        throw error;
-      }
-    }
-    return transformedValue;
-  }
-
-  return value;
+  return result;
 }
 
 function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
   const plugins = options.plugins || [];
   return {
-    validate: <T extends MonoSchema>(schema: T) => (value: InferTypeFromMonoSchema<T>): ValidationResult<InferTypeFromMonoSchema<T>> => {
-      const errors = validateValue(schema, value, "", plugins);
-      return {
-        valid: errors.length === 0,
-        errors,
-        data: errors.length === 0 ? value : undefined,
-      };
-    },
-    transformAndValidate: <T extends MonoSchema>(schema: T) => (value: unknown): ValidationResult<InferTypeFromMonoSchema<T>> => {
+    validate: <T extends MonoSchema>(schema: T) => (value: unknown): ValidationResult<InferTypeFromMonoSchema<T>> => {
       try {
-        const transformedValue = transformValue(schema, value, "", plugins);
-        const errors = validateValue(schema, transformedValue, "", plugins);
+        const prevalidated = runPrevalidation(schema, value, "", plugins);
+        const errors = validateValue(schema, prevalidated, "", plugins);
         return {
           valid: errors.length === 0,
           errors,
-          data: errors.length === 0 ? (transformedValue as InferTypeFromMonoSchema<T>) : undefined,
+          data: errors.length === 0 ? (prevalidated as InferTypeFromMonoSchema<T>) : undefined,
         };
       } catch (error) {
         if (error instanceof Error) {

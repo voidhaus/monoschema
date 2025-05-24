@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema } from "./monoschema";
+import { transformerPlugin } from "./transformerPlugin";
 import { max, min } from "./constraints";
 import { stringToNumber } from "./transformers";
 
@@ -34,8 +35,7 @@ describe('monoschema', () => {
     }
     const invalidData: MySchemaType = {
       name: "John Doe",
-      // @ts-expect-error
-      age: "thirty", // Invalid type
+      age: "thirty" as any, // Invalid type
       isActive: true,
       hobbies: ["reading", "gaming"],
       favouriteNumbers: [1, 2, 3],
@@ -102,8 +102,15 @@ describe('monoschema', () => {
     // Validate the data against the schema
     const validate = monoSchema.validate(nestedSchema)
     const isValid = validate(validData)
-    // @ts-expect-error
-    const isInvalid = validate(invalidData)
+    const isInvalid = validate({
+      name: "John Doe",
+      age: 30,
+      address: {
+        street: "123 Main St",
+        city: "New York",
+        zipCode: "10001" as any, // Invalid type
+      },
+    })
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [], data: validData })
     expect(isInvalid).toStrictEqual({
@@ -289,8 +296,7 @@ describe('monoschema', () => {
     // Error here should be caught at compile time because age is the wrong type
     const invalidData: MySchemaType = {
       name: "John Doe",
-      // @ts-expect-error
-      age: "thirty", // Invalid type
+      age: "thirty" as any, // Invalid type
       isActive: true,
       hobbies: ["reading", "gaming"],
     }
@@ -671,8 +677,7 @@ describe('monoschema', () => {
     }
     const invalidData: MySchemaType = {
       name: "John Doe",
-      // @ts-expect-error
-      birthDate: "1990-01-01", // Invalid type
+      birthDate: "1990-01-01" as any, // Invalid type
       lastLogin: new Date("2023-10-01"),
     }
     // Validate the data against the schema
@@ -718,8 +723,8 @@ describe('monoschema', () => {
       isActive: true,
     }
 
-    const transformAndValidate = configureMonoSchema().transformAndValidate(basicSchema)
-    const isValid = transformAndValidate(unknownInputData)
+    const validate = configureMonoSchema({ plugins: [transformerPlugin] }).validate(basicSchema)
+    const isValid = validate(unknownInputData)
 
     // isValid.data should be of type MySchemaType
     isValid.data;
@@ -756,8 +761,8 @@ describe('monoschema', () => {
       age: "invalidNumber", // Invalid string that cannot be transformed to a number
       isActive: true,
     }
-    const transformAndValidate = configureMonoSchema().transformAndValidate(basicSchema)
-    const isInvalid = transformAndValidate(invalidInputData)
+    const validate = configureMonoSchema({ plugins: [transformerPlugin] }).validate(basicSchema)
+    const isInvalid = validate(invalidInputData)
     // Check the validation results
     expect(isInvalid).toStrictEqual({
       valid: false,
@@ -789,9 +794,9 @@ describe('monoschema', () => {
       },
     } as const;
     type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
-    // @ts-expect-error
-    const transformAndValidate = configureMonoSchema().transformAndValidate(basicSchema)
-    expect(() => transformAndValidate({ name: "John Doe", age: "30", isActive: true })).toThrowError(
+    // Bypass type system for this negative test
+    const validate = configureMonoSchema({ plugins: [transformerPlugin] }).validate(basicSchema as any)
+    expect(() => validate({ name: "John Doe", age: "30", isActive: true })).toThrowError(
       'Invalid transformer provided. Expected a function with input and output types defined, as well as a transform function.',
     )
   })
