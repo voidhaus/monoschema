@@ -78,7 +78,7 @@ const example: User = {
 ### Validating a Schema
 
 ```ts
-import { configureMonoSchema } from '@voidhaus/monoschema';
+import { configureMonoSchema, type InferTypeFromMonoSchema } from '@voidhaus/monoschema';
 import { min, minLength, max, maxLength, email } from '@voidhaus/monoschema/constraints';
 
 // Gender enum type for type-safe inference
@@ -92,6 +92,9 @@ const userSchema = {
   email: { $type: String, $constraints: [email()] },
   gender: { $type: GenderEnum },
 } as const;
+
+// Infer the TypeScript type from the schema
+type User = InferTypeFromMonoSchema<typeof userSchema>;
 
 const validator = configureMonoSchema({
   plugins: [{
