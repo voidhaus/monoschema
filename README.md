@@ -9,6 +9,7 @@ See `./packages/monoschema/README.md` for the MonoSchema README.
 - `./packages/monoschema`
 - `./packages/monoschema-transformer`
 - `./packages/monoschema-mongo`
+- `./packages/rpc` - Name to be updated
 
 # List of non-active packages (currently example packages to be removed):
 
@@ -29,5 +30,7 @@ See `./packages/monoschema/README.md` for the MonoSchema README.
 - [ ] Check monoschema-mongo support for custom types (e.g. enum)
 - [x] Add monoschema-mongo support for ObjectID type
 - [x] Add monoschema-mongo support for String<>ObjectID transformers
-- [ ] Add monoschema-mongo support for updates
+- [ ] Add monoschema-mongo support for updates - partial
 - [ ] Create monoschema-express
+- [ ] Implement working server implementation of rpc
+- [ ] Implement working client implementation of rpc
