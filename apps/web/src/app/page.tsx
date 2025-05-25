@@ -46,8 +46,34 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <header className="relative flex flex-col items-center justify-center py-28 px-4 sm:px-0 z-10">
-        <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[600px] h-[200px] bg-gradient-to-r from-[#7c3aed55] via-[#6ee7b755] to-transparent opacity-60 blur-2xl -z-10" />
+      <header className="relative flex flex-col items-center justify-center py-28 px-4 sm:px-0 z-10 overflow-visible">
+        {/* Layered Animated Glows */}
+        <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 w-[700px] h-[320px] -z-10">
+          {/* Subtle Geometric SVG */}
+          <svg width="700" height="320" viewBox="0 0 700 320" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute left-0 top-0 w-full h-full opacity-30">
+            <defs>
+              <linearGradient id="geoGradient1" x1="0" y1="0" x2="700" y2="320" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#7c3aed" stopOpacity="0.5" />
+                <stop offset="1" stopColor="#4ade80" stopOpacity="0.3" />
+              </linearGradient>
+            </defs>
+            <polygon points="0,160 175,0 525,0 700,160 525,320 175,320" fill="url(#geoGradient1)" />
+            <polyline points="0,160 700,160" stroke="#7c3aed" strokeWidth="1.5" opacity="0.15" />
+            <polyline points="175,0 175,320" stroke="#4ade80" strokeWidth="1.5" opacity="0.12" />
+            <polyline points="525,0 525,320" stroke="#4ade80" strokeWidth="1.5" opacity="0.12" />
+            <polyline points="0,80 700,80" stroke="#7c3aed" strokeWidth="1" opacity="0.08" />
+            <polyline points="0,240 700,240" stroke="#4ade80" strokeWidth="1" opacity="0.08" />
+          </svg>
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[600px] h-[200px] bg-gradient-to-r from-[#7c3aed99] via-[#6ee7b799] to-transparent opacity-70 blur-2xl animate-pulse-slow" />
+          <div className="absolute left-1/2 top-10 -translate-x-1/2 w-[400px] h-[120px] bg-gradient-to-r from-[#4ade8099] via-transparent to-[#7c3aed99] opacity-60 blur-2xl animate-pulse" />
+          <div className="absolute left-1/2 top-24 -translate-x-1/2 w-[300px] h-[80px] bg-gradient-to-r from-[#7c3aed88] via-[#4ade8088] to-transparent opacity-50 blur-2xl animate-pulse-fast" />
+        </div>
+        {/* Animated Floating Orbs */}
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full -z-10">
+          <div className="absolute animate-float-slow left-[20%] top-[30%] w-24 h-24 bg-gradient-radial from-[#7c3aed88] to-transparent rounded-full blur-2xl opacity-60" />
+          <div className="absolute animate-float-fast right-[18%] top-[40%] w-16 h-16 bg-gradient-radial from-[#4ade8088] to-transparent rounded-full blur-2xl opacity-50" />
+          <div className="absolute animate-float-mid left-[60%] top-[60%] w-20 h-20 bg-gradient-radial from-[#6ee7b788] to-transparent rounded-full blur-2xl opacity-40" />
+        </div>
         <div className="flex flex-col items-center gap-6">
           <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-[#7c3aed] via-[#4ade80] to-[#7c3aed] bg-clip-text text-transparent drop-shadow-lg text-center">
             Building Tomorrow&apos;s Software
@@ -70,6 +96,34 @@ export default function Home() {
             </a>
           </div>
         </div>
+        {/* Custom Animations */}
+        <style jsx>{`
+          @keyframes float-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-24px); }
+          }
+          @keyframes float-fast {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-40px); }
+          }
+          @keyframes float-mid {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-32px); }
+          }
+          @keyframes pulse-slow {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+          }
+          @keyframes pulse-fast {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+          }
+          .animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
+          .animate-float-fast { animation: float-fast 4s ease-in-out infinite; }
+          .animate-float-mid { animation: float-mid 5.5s ease-in-out infinite; }
+          .animate-pulse-slow { animation: pulse-slow 6s ease-in-out infinite; }
+          .animate-pulse-fast { animation: pulse-fast 2.5s ease-in-out infinite; }
+        `}</style>
       </header>
 
       {/* Features Section */}
