@@ -41,16 +41,16 @@ export default function GridAnimatedDots() {
     <>
       <style>{`
         @keyframes grid-dot-v {
-          0% { transform: translateY(0); opacity: 0.7; }
+          0% { transform: translateY(0); opacity: 0; }
           10% { opacity: 1; }
           90% { opacity: 1; }
-          100% { transform: translateY(${height - 24}px); opacity: 0.7; }
+          100% { transform: translateY(${height - 24}px); opacity: 0; }
         }
         @keyframes grid-dot-h {
-          0% { transform: translateX(0); opacity: 0.7; }
+          0% { transform: translateX(0); opacity: 0; }
           10% { opacity: 1; }
           90% { opacity: 1; }
-          100% { transform: translateX(${width - 24}px); opacity: 0.7; }
+          100% { transform: translateX(${width - 24}px); opacity: 0; }
         }
       `}</style>
       {/* Vertical dots */}
@@ -69,6 +69,7 @@ export default function GridAnimatedDots() {
             opacity: 0.95,
             animation: `grid-dot-v ${duration + idx * 0.3}s linear infinite`,
             animationDelay: `${idx * 0.7}s`,
+            animationFillMode: 'forwards',
           }}
         />
       ))}
@@ -88,6 +89,7 @@ export default function GridAnimatedDots() {
             opacity: 0.95,
             animation: `grid-dot-h ${duration + idx * 0.3}s linear infinite`,
             animationDelay: `${0.4 + idx * 0.7}s`,
+            animationFillMode: 'forwards',
           }}
         />
       ))}
