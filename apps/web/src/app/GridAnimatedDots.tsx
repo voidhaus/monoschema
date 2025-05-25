@@ -70,7 +70,9 @@ export default function GridAnimatedDots() {
             animation: `grid-dot-v ${duration + idx * 0.3}s linear infinite`,
             animationDelay: `${idx * 0.7}s`,
             animationFillMode: 'forwards',
+            visibility: 'hidden',
           }}
+          onAnimationStart={e => { e.currentTarget.style.visibility = 'visible'; }}
         />
       ))}
       {/* Horizontal dots */}
@@ -90,7 +92,9 @@ export default function GridAnimatedDots() {
             animation: `grid-dot-h ${duration + idx * 0.3}s linear infinite`,
             animationDelay: `${0.4 + idx * 0.7}s`,
             animationFillMode: 'forwards',
+            visibility: 'hidden',
           }}
+          onAnimationStart={e => { e.currentTarget.style.visibility = 'visible'; }}
         />
       ))}
     </>
