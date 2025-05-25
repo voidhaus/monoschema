@@ -1,5 +1,7 @@
 "use client";
 
+import ResponsiveGridBackground from "./ResponsiveGridBackground";
+
 export default function Home() {
   return (
     <main className="relative min-h-screen bg-gradient-to-br from-[#0a0a0f] to-[#181825] flex flex-col overflow-hidden">
@@ -32,8 +34,8 @@ export default function Home() {
       {/* Animated spinning polygon top right */}
       <svg className="absolute top-[-60px] right-[-60px] w-[180px] h-[180px] opacity-20 blur animate-spin-slow" style={{animationDuration:'18s'}} viewBox="0 0 100 100" fill="none"><polygon points="50,10 90,40 75,90 25,90 10,40" stroke="#7c7c8a" strokeWidth="8" fill="none" /></svg>
 
-      {/* Faint vertical lines background */}
-      <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 1440 900" fill="none" preserveAspectRatio="none"><g stroke="#393a40" strokeWidth="2">{Array.from({length:25}).map((_,i)=>(<line key={i} x1={i*60} y1="0" x2={i*60} y2="900"/>))}</g></svg>
+      {/* Responsive grid lines background (vertical and horizontal, 60px cells) */}
+      <ResponsiveGridBackground />
 
       {/* Large blurred circle bottom right */}
       <div className="absolute bottom-[-120px] right-[-120px] w-[320px] h-[320px] bg-gradient-to-tr from-[#232336] to-[#393a40] rounded-full blur-2xl opacity-30" />
