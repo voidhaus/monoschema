@@ -39,7 +39,7 @@ export default function Home() {
 
       {/* Responsive grid lines background (vertical and horizontal, 60px cells) */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <GridAnimatedDots />
+        <GridAnimatedDots dotSize={2} />
       </div>
       <ResponsiveGridBackground />
 

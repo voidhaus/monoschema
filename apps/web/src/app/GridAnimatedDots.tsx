@@ -28,7 +28,7 @@ function useGridSize() {
 }
 
 // Dots travel along grid lines (vertical and horizontal)
-export default function GridAnimatedDots() {
+export default function GridAnimatedDots({ dotSize = 8 }) {
   const { width, height } = useGridSize();
   // Dots per direction (spread out, not every line)
   const vDotIdxs = [2, 6, 10, 15, 20];
@@ -59,10 +59,10 @@ export default function GridAnimatedDots() {
           key={"vdot"+i}
           className="pointer-events-none absolute z-0"
           style={{
-            left: i * 60 - 4,
+            left: i * 60 - (dotSize / 2),
             top: 0,
-            width: 8,
-            height: 8,
+            width: dotSize,
+            height: dotSize,
             borderRadius: "50%",
             background: "#fff",
             boxShadow: "0 0 8px 2px #fff",
@@ -82,9 +82,9 @@ export default function GridAnimatedDots() {
           className="pointer-events-none absolute z-0"
           style={{
             left: 0,
-            top: i * 60 - 4,
-            width: 8,
-            height: 8,
+            top: i * 60 - (dotSize / 2),
+            width: dotSize,
+            height: dotSize,
             borderRadius: "50%",
             background: "#fff",
             boxShadow: "0 0 8px 2px #fff",
