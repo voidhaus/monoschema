@@ -6,6 +6,7 @@ import ResponsiveGridBackground from "./ResponsiveGridBackground";
 import GridAnimatedDots from "./GridAnimatedDots";
 import Button from "./button";
 import Card from "./card";
+import HorizontalInfiniteScroll from "./HorizontalInfiniteScroll";
 
 export default function Home() {
   return (
@@ -101,27 +102,113 @@ export default function Home() {
 
       {/* MONOSCHEMA SECTION */}
       <section id="monoschema" className="relative z-10 flex flex-col items-center text-center px-6 py-24">
-        <Card className="p-10 max-w-2xl w-full backdrop-blur-md flex flex-col items-center" disablehover>
-          <div className="flex items-center gap-3 mb-4">
-            <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="20" cy="20" r="18" stroke="#00E5FF" strokeWidth="2" fill="none" />
-              <rect x="10" y="10" width="20" height="20" rx="5" stroke="#7C3AED" strokeWidth="2" fill="none" />
-              <polygon points="20,13 27,27 13,27" stroke="#F59E42" strokeWidth="2" fill="none" />
-            </svg>
-            <span className="text-2xl font-bold text-white tracking-wide">MonoSchema</span>
-          </div>
-          <p className="text-gray-400 font-light text-base md:text-lg mb-6">
-            A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
-          </p>
-          <Button
-            href="https://github.com/voidhaus/monoschema"
-            target="_blank"
-            rel="noopener noreferrer"
-            size="md"
-          >
-            View on GitHub
-          </Button>
-        </Card>
+        <HorizontalInfiniteScroll>
+          <Card className="p-10 max-w-2xl w-full backdrop-blur-md flex flex-col items-center" disablehover>
+            <div className="flex items-center gap-3 mb-4">
+              <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" stroke="#00E5FF" strokeWidth="2" fill="none" />
+                <rect x="10" y="10" width="20" height="20" rx="5" stroke="#7C3AED" strokeWidth="2" fill="none" />
+                <polygon points="20,13 27,27 13,27" stroke="#F59E42" strokeWidth="2" fill="none" />
+              </svg>
+              <span className="text-2xl font-bold text-white tracking-wide">MonoSchema</span>
+            </div>
+            <p className="text-gray-400 font-light text-base md:text-lg mb-6">
+              A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
+            </p>
+            <Button
+              href="https://github.com/voidhaus/monoschema"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="md"
+            >
+              View on GitHub
+            </Button>
+          </Card>
+          <Card className="p-10 max-w-2xl w-full backdrop-blur-md flex flex-col items-center" disablehover>
+            <div className="flex items-center gap-3 mb-4">
+              <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" stroke="#00E5FF" strokeWidth="2" fill="none" />
+                <rect x="10" y="10" width="20" height="20" rx="5" stroke="#7C3AED" strokeWidth="2" fill="none" />
+                <polygon points="20,13 27,27 13,27" stroke="#F59E42" strokeWidth="2" fill="none" />
+              </svg>
+              <span className="text-2xl font-bold text-white tracking-wide">MonoSchema</span>
+            </div>
+            <p className="text-gray-400 font-light text-base md:text-lg mb-6">
+              A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
+            </p>
+            <Button
+              href="https://github.com/voidhaus/monoschema"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="md"
+            >
+              View on GitHub
+            </Button>
+          </Card>
+          <Card className="p-10 max-w-2xl w-full backdrop-blur-md flex flex-col items-center" disablehover>
+            <div className="flex items-center gap-3 mb-4">
+              <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" stroke="#00E5FF" strokeWidth="2" fill="none" />
+                <rect x="10" y="10" width="20" height="20" rx="5" stroke="#7C3AED" strokeWidth="2" fill="none" />
+                <polygon points="20,13 27,27 13,27" stroke="#F59E42" strokeWidth="2" fill="none" />
+              </svg>
+              <span className="text-2xl font-bold text-white tracking-wide">MonoSchema</span>
+            </div>
+            <p className="text-gray-400 font-light text-base md:text-lg mb-6">
+              A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
+            </p>
+            <Button
+              href="https://github.com/voidhaus/monoschema"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="md"
+            >
+              View on GitHub
+            </Button>
+          </Card>
+          <Card className="p-10 max-w-2xl w-full backdrop-blur-md flex flex-col items-center" disablehover>
+            <div className="flex items-center gap-3 mb-4">
+              <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" stroke="#00E5FF" strokeWidth="2" fill="none" />
+                <rect x="10" y="10" width="20" height="20" rx="5" stroke="#7C3AED" strokeWidth="2" fill="none" />
+                <polygon points="20,13 27,27 13,27" stroke="#F59E42" strokeWidth="2" fill="none" />
+              </svg>
+              <span className="text-2xl font-bold text-white tracking-wide">MonoSchema</span>
+            </div>
+            <p className="text-gray-400 font-light text-base md:text-lg mb-6">
+              A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
+            </p>
+            <Button
+              href="https://github.com/voidhaus/monoschema"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="md"
+            >
+              View on GitHub
+            </Button>
+          </Card>
+          <Card className="p-10 max-w-2xl w-full backdrop-blur-md flex flex-col items-center" disablehover>
+            <div className="flex items-center gap-3 mb-4">
+              <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" stroke="#00E5FF" strokeWidth="2" fill="none" />
+                <rect x="10" y="10" width="20" height="20" rx="5" stroke="#7C3AED" strokeWidth="2" fill="none" />
+                <polygon points="20,13 27,27 13,27" stroke="#F59E42" strokeWidth="2" fill="none" />
+              </svg>
+              <span className="text-2xl font-bold text-white tracking-wide">MonoSchema</span>
+            </div>
+            <p className="text-gray-400 font-light text-base md:text-lg mb-6">
+              A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
+            </p>
+            <Button
+              href="https://github.com/voidhaus/monoschema"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="md"
+            >
+              View on GitHub
+            </Button>
+          </Card>
+        </HorizontalInfiniteScroll>
       </section>
 
       {/* CONTACT SECTION */}
