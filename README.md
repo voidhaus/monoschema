@@ -6,6 +6,7 @@ See `./packages/monoschema/README.md` for the MonoSchema README.
 
 # List of active packages:
 
+- `./apps/web` - VoidHaus public site
 - `./packages/monoschema`
 - `./packages/monoschema-transformer`
 - `./packages/monoschema-mongo`
@@ -14,8 +15,6 @@ See `./packages/monoschema/README.md` for the MonoSchema README.
 
 # List of non-active packages (currently example packages to be removed):
 
-- `./apps/docs`
-- `./apps/web`
 - `./packages/ui`
 
 # TODO
