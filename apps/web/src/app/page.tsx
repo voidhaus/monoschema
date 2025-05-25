@@ -146,18 +146,79 @@ export default function Home() {
         `}</style>
       </header>
 
-      {/* SVG Diagonal Divider */}
-      <div className="relative w-full -mt-8 z-[5]">
-        <svg viewBox="0 0 1440 90" width="100%" height="90" className="block w-full h-[90px]" preserveAspectRatio="none">
+      {/* Prism Beam Divider (faithful to Dark Side of the Moon) */}
+      <div className="relative w-full h-40 flex items-center z-20 select-none pointer-events-none">
+        <svg width="100%" height="100%" viewBox="0 0 1440 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute left-0 top-0 w-full h-full">
+          {/* Prism moved to left, sharp geometric look, no blur */}
+          {/* Incoming white beam (left, thin, sharp, animated) */}
+          <g overflow="hidden">
+            <rect x="0" y="81" height="1.2" fill="url(#beam-in)" className="beam-animate" />
+          </g>
+          {/* Prism triangle (left, glass, crisp, strong outline, no glow) */}
+          <polygon points="120,130 170,40 220,130" fill="url(#prism-glass)" stroke="#fff" strokeWidth="5" opacity="1" />
+          {/* Inner highlight for glass effect */}
+          <polyline points="135,120 170,55 205,120" stroke="#fff" strokeWidth="2" opacity="0.85" />
+          {/* Faint white edge highlight */}
+          <polyline points="120,130 170,40 220,130" stroke="#fff" strokeWidth="1.5" opacity="0.38" />
+          {/* Outgoing green beam (thin, sharp, steep angle, from prism) */}
+          <g overflow="hidden">
+            <polygon points="170,82 180,78 1440,14 1440,26" fill="url(#beam-out)" opacity="1" className="beam-out-animate" />
+          </g>
+          {/* Rainbow dispersion (subtle, under triangle, left, sharp) */}
+          <polygon points="150,130 190,130 170,148" fill="url(#rainbow)" opacity="1" />
+          {/* Faint white outline around triangle (no blur) */}
+          <polygon points="120,130 170,40 220,130" fill="none" stroke="#fff" strokeWidth="2.5" opacity="0.18" />
           <defs>
-            <linearGradient id="dividerGradient" x1="0" y1="0" x2="1440" y2="90" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#7c3aed" stopOpacity="0.12" />
-              <stop offset="0.5" stopColor="#4ade80" stopOpacity="0.18" />
-              <stop offset="1" stopColor="#101014" stopOpacity="0.0" />
+            {/* White beam gradient */}
+            <linearGradient id="beam-in" x1="0" y1="81.5" x2="110" y2="81.5" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#fff" stopOpacity="1" />
+              <stop offset="0.7" stopColor="#fff" stopOpacity="0.7" />
+              <stop offset="1" stopColor="#fff" stopOpacity="0.15" />
+            </linearGradient>
+            {/* Green beam gradient */}
+            <linearGradient id="beam-out" x1="180" y1="78" x2="1440" y2="14" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#4ade80" stopOpacity="1" />
+              <stop offset="0.25" stopColor="#6ee7b7" stopOpacity="0.7" />
+              <stop offset="0.7" stopColor="#4ade80" stopOpacity="0.18" />
+              <stop offset="1" stopColor="#4ade80" stopOpacity="0.05" />
+            </linearGradient>
+            {/* Prism glass gradient */}
+            <linearGradient id="prism-glass" x1="170" y1="40" x2="170" y2="130" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#fff" stopOpacity="1" />
+              <stop offset="0.5" stopColor="#e0f7fa" stopOpacity="0.8" />
+              <stop offset="1" stopColor="#b2f5ea" stopOpacity="0.5" />
+            </linearGradient>
+            {/* Rainbow dispersion gradient */}
+            <linearGradient id="rainbow" x1="150" y1="138" x2="190" y2="148" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#f87171" />
+              <stop offset="0.18" stopColor="#fbbf24" />
+              <stop offset="0.36" stopColor="#34d399" />
+              <stop offset="0.54" stopColor="#38bdf8" />
+              <stop offset="0.72" stopColor="#a78bfa" />
+              <stop offset="1" stopColor="#f472b6" />
             </linearGradient>
           </defs>
-          <polygon points="0,0 1440,0 1440,90" fill="url(#dividerGradient)" />
         </svg>
+        <style jsx>{`
+          .beam-animate {
+            width: 0;
+            animation: beam-grow 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+          }
+          @keyframes beam-grow {
+            from { width: 0; }
+            to { width: 110px; }
+          }
+          .beam-out-animate {
+            transform-box: fill-box;
+            transform-origin: left;
+            scale: 0 1;
+            animation: beam-out-grow 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.85s forwards;
+          }
+          @keyframes beam-out-grow {
+            from { scale: 0 1; }
+            to { scale: 1 1; }
+          }
+        `}</style>
       </div>
 
       {/* Features Section */}
