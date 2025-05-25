@@ -4,8 +4,8 @@
 
 import ResponsiveGridBackground from "./ResponsiveGridBackground";
 import GridAnimatedDots from "./GridAnimatedDots";
-import { Card } from "@voidhaus/ui/card";
-import { Button } from "@voidhaus/ui/button";
+import Button from "./button";
+import Card from "./card";
 
 export default function Home() {
   return (

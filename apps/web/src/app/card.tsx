@@ -5,7 +5,7 @@ export type CardProps = React.PropsWithChildren<{
   [key: string]: unknown;
 }>;
 
-export function Card({ children, className = "", ...props }: CardProps) {
+export default function Card({ children, className = "", ...props }: CardProps) {
   return (
     <div
       className={[

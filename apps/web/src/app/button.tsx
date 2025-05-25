@@ -16,7 +16,7 @@ const sizes = {
   md: "px-6 py-2 rounded-lg text-base",
 };
 
-export function Button({
+export default function Button({
   as = "a",
   href,
   className = "",
