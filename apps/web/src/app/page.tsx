@@ -1,8 +1,11 @@
 
 "use client";
 
+
 import ResponsiveGridBackground from "./ResponsiveGridBackground";
 import GridAnimatedDots from "./GridAnimatedDots";
+import { Card } from "@voidhaus/ui/card";
+import { Button } from "@voidhaus/ui/button";
 
 export default function Home() {
   return (
@@ -63,40 +66,37 @@ export default function Home() {
         <p className="text-lg md:text-2xl text-gray-400 font-light mb-10 max-w-2xl">
           The software house for next-gen TypeScript tools. We craft blazing-fast, type-safe solutions for ambitious teams and monorepos.
         </p>
-        <a
-          href="#monoschema"
-          className="inline-block px-8 py-3 rounded-xl border-2 border-[#00E5FF] text-gray-300 font-normal shadow-lg hover:scale-105 transition-transform text-lg bg-transparent hover:bg-[#00E5FF]/10"
-        >
+        <Button href="#monoschema" size="lg">
           Discover MonoSchema
-        </a>
+        </Button>
       </section>
 
       {/* FEATURES SECTION */}
       <section id="features" className="relative z-10 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-6 pb-24">
-        <div className="bg-[#181825]/80 border border-[#232336] rounded-2xl p-8 flex flex-col items-center text-center shadow-lg backdrop-blur-md">
+        <Card>
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className="mb-4">
             <circle cx="24" cy="24" r="22" stroke="#fff" strokeOpacity="0.15" strokeWidth="3" fill="none" />
             <rect x="14" y="14" width="20" height="20" rx="6" stroke="#00E5FF" strokeWidth="2" fill="none" />
           </svg>
           <h3 className="text-xl font-bold text-white mb-2">Type-Safe by Design</h3>
-          <p className="text-gray-400 font-light">All our tools are built with TypeScript-first principles for maximum safety and DX.</p>
-        </div>
-        <div className="bg-[#181825]/80 border border-[#232336] rounded-2xl p-8 flex flex-col items-center text-center shadow-lg backdrop-blur-md">
+          <p className="text-gray-400 font-light text-center">All our tools are built with TypeScript-first principles for maximum safety and DX.</p>
+        </Card>
+        <Card>
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className="mb-4">
             <polygon points="24,8 40,40 8,40" stroke="#fff" strokeOpacity="0.15" strokeWidth="3" fill="none" />
             <polygon points="24,14 36,38 12,38" stroke="#F59E42" strokeWidth="2" fill="none" />
           </svg>
           <h3 className="text-xl font-bold text-white mb-2">Monorepo Ready</h3>
-          <p className="text-gray-400 font-light">Seamless integration for large codebases and modern monorepo workflows.</p>
-        </div>
-        <div className="bg-[#181825]/80 border border-[#232336] rounded-2xl p-8 flex flex-col items-center text-center shadow-lg backdrop-blur-md">
+          <p className="text-gray-400 font-light text-center">Seamless integration for large codebases and modern monorepo workflows.</p>
+        </Card>
+        <Card>
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className="mb-4">
             <rect x="8" y="8" width="32" height="32" rx="10" stroke="#fff" strokeOpacity="0.15" strokeWidth="3" fill="none" />
             <circle cx="24" cy="24" r="10" stroke="#7C3AED" strokeWidth="2" fill="none" />
           </svg>
           <h3 className="text-xl font-bold text-white mb-2">Performance Obsessed</h3>
-          <p className="text-gray-400 font-light">Lightning-fast validation and transformation, even at scale.</p>
-        </div>
+          <p className="text-gray-400 font-light text-center">Lightning-fast validation and transformation, even at scale.</p>
+        </Card>
       </section>
 
       {/* MONOSCHEMA SECTION */}
@@ -113,14 +113,14 @@ export default function Home() {
           <p className="text-gray-400 font-light text-base md:text-lg mb-6">
             A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
           </p>
-          <a
-            href="https://github.com/voidhaus/monoschema"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-2 rounded-lg border-2 border-[#00E5FF] text-gray-300 font-normal shadow-lg hover:scale-105 transition-transform bg-transparent hover:bg-[#00E5FF]/10"
-          >
-            View on GitHub
-          </a>
+            <Button
+              href="https://github.com/voidhaus/monoschema"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="md"
+            >
+              View on GitHub
+            </Button>
         </div>
       </section>
 
