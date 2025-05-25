@@ -1,6 +1,8 @@
+
 "use client";
 
 import ResponsiveGridBackground from "./ResponsiveGridBackground";
+import GridAnimatedDots from "./GridAnimatedDots";
 
 export default function Home() {
   return (
@@ -34,7 +36,11 @@ export default function Home() {
       {/* Animated spinning polygon top right */}
       <svg className="absolute top-[-60px] right-[-60px] w-[180px] h-[180px] opacity-20 blur animate-spin-slow" style={{animationDuration:'18s'}} viewBox="0 0 100 100" fill="none"><polygon points="50,10 90,40 75,90 25,90 10,40" stroke="#7c7c8a" strokeWidth="8" fill="none" /></svg>
 
+
       {/* Responsive grid lines background (vertical and horizontal, 60px cells) */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <GridAnimatedDots />
+      </div>
       <ResponsiveGridBackground />
 
       {/* Large blurred circle bottom right */}
