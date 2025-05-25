@@ -101,7 +101,7 @@ export default function Home() {
 
       {/* MONOSCHEMA SECTION */}
       <section id="monoschema" className="relative z-10 flex flex-col items-center text-center px-6 py-24">
-        <div className="flex flex-col items-center bg-[#181825]/90 border border-[#232336] rounded-2xl shadow-2xl p-10 max-w-2xl w-full backdrop-blur-md">
+        <Card className="p-10 max-w-2xl w-full backdrop-blur-md flex flex-col items-center" disablehover>
           <div className="flex items-center gap-3 mb-4">
             <svg width="48" height="48" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="20" cy="20" r="18" stroke="#00E5FF" strokeWidth="2" fill="none" />
@@ -113,15 +113,15 @@ export default function Home() {
           <p className="text-gray-400 font-light text-base md:text-lg mb-6">
             A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
           </p>
-            <Button
-              href="https://github.com/voidhaus/monoschema"
-              target="_blank"
-              rel="noopener noreferrer"
-              size="md"
-            >
-              View on GitHub
-            </Button>
-        </div>
+          <Button
+            href="https://github.com/voidhaus/monoschema"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="md"
+          >
+            View on GitHub
+          </Button>
+        </Card>
       </section>
 
       {/* CONTACT SECTION */}
