@@ -56,6 +56,26 @@ class ProcedureBuilder<I = unknown, O = unknown> {
 }
 
 // createRpc implementation
+// Utility type to recursively type the router definition
+type RouterProcedures<T> = {
+  [K in keyof T]:
+    T[K] extends { resolver: (input: infer I) => infer O }
+      ? { call: (input: I) => O }
+      : T[K] extends { __isNamespace: true; value: infer V }
+        ? RouterProcedures<V>
+        : never;
+};
+
+export type RouterReturn<T> = RouterProcedures<T> & {
+  callProcedure: (jsonRpc: {
+    jsonrpc: string;
+    method: string;
+    params: any;
+    id: number | string;
+  }) => any;
+  __def: T;
+};
+
 export function createRpc(config: { monoschema: ReturnType<typeof configureMonoSchema> }) {
   // Helper to recursively find a procedure by path (dot notation)
   function findProcedure(obj: any, path: string[]): any {
@@ -73,9 +93,9 @@ export function createRpc(config: { monoschema: ReturnType<typeof configureMonoS
     return findProcedure(next, rest);
   }
 
-  return function(routerDef: Record<string, any>) {
+  return function routerDefTyped<T extends Record<string, any>>(routerDef: T): RouterReturn<T> {
     return {
-      ...routerDef,
+      ...(routerDef as any),
       callProcedure: (jsonRpc: {
         jsonrpc: string;
         method: string;
@@ -102,6 +122,7 @@ export function createRpc(config: { monoschema: ReturnType<typeof configureMonoS
           id: jsonRpc.id,
         };
       },
-    };
+      __def: routerDef,
+    } as any;
   };
 }

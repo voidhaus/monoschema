@@ -10,6 +10,7 @@ See `./packages/monoschema/README.md` for the MonoSchema README.
 - `./packages/monoschema-transformer`
 - `./packages/monoschema-mongo`
 - `./packages/rpc` - Name to be updated
+- `./packags/rpc-hyper-express` - Name to be updated
 
 # List of non-active packages (currently example packages to be removed):
 

@@ -32,6 +32,8 @@ describe('RPC Tests', () => {
           })
     })
 
+    type MyAppType = typeof myApp;
+
     const jsonRpc = {
       jsonrpc: '2.0',
       method: 'hello',
@@ -77,6 +79,10 @@ describe('RPC Tests', () => {
         })
       }),
     })
+
+    type MyAppType = typeof myApp;
+
+    
     const jsonRpc = {
       jsonrpc: '2.0',
       method: 'nested.namespaces.hello',
