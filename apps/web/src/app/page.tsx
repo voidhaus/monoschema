@@ -2,23 +2,8 @@
 
 import Image from "next/image";
 
-import { useState, useRef } from "react";
 
 export default function Home() {
-  const [productsOpen, setProductsOpen] = useState(false);
-  // Timeout ref for menu close (persistent)
-  const productsMenuTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  // Handlers to prevent flicker (mouse only)
-  const handleProductsEnter = () => {
-    if (productsMenuTimeout.current) clearTimeout(productsMenuTimeout.current);
-    setProductsOpen(true);
-  };
-  const handleProductsLeave = () => {
-    if (productsMenuTimeout.current) clearTimeout(productsMenuTimeout.current);
-    productsMenuTimeout.current = setTimeout(() => setProductsOpen(false), 120);
-  };
-
   return (
     <div className="relative min-h-screen bg-[#101014] text-white flex flex-col font-[family-name:var(--font-geist-sans)] overflow-x-hidden">
       {/* Decorative Backgrounds */}
@@ -28,7 +13,7 @@ export default function Home() {
       </div>
 
       {/* Navigation Bar */}
-      <nav className="z-10 sticky top-0 w-full bg-[#101014]/80 backdrop-blur border-b border-[#232336]/60 shadow-sm">
+      <nav className="z-50 sticky top-0 w-full bg-[#101014]/40 backdrop-blur border-b border-[#232336]/60 shadow-sm bg-opacity-60">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="text-2xl font-bold tracking-tight bg-gradient-to-r from-[#7c3aed] via-[#4ade80] to-[#7c3aed] bg-clip-text text-transparent">Voidhaus</span>
@@ -37,24 +22,20 @@ export default function Home() {
             <li>
               <a href="#about" className="hover:text-[#4ade80] transition-colors">About</a>
             </li>
-            <li className="relative group/products-menu" onMouseEnter={handleProductsEnter} onMouseLeave={handleProductsLeave}>
+            <li className="relative group z-20">
               <button
                 className="flex items-center gap-1 hover:text-[#4ade80] transition-colors focus:outline-none"
                 aria-haspopup="true"
-                aria-expanded={productsOpen}
+                aria-expanded="false"
               >
                 Products
-                <svg className={`w-4 h-4 transition-transform ${productsOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
               </button>
-              <div>
-                {productsOpen && (
-                  <ul className="absolute left-0 mt-2 w-44 bg-[#181824] border border-[#232336]/60 rounded-xl shadow-lg py-2 z-20 animate-fade-in">
-                    <li><a href="#product1" className="block px-4 py-2 hover:bg-gradient-to-r hover:from-[#7c3aed] hover:to-[#6ee7b7] rounded transition-colors">SaaS Platform</a></li>
-                    <li><a href="#product2" className="block px-4 py-2 hover:bg-gradient-to-r hover:from-[#6ee7b7] hover:to-[#7c3aed] rounded transition-colors">API Suite</a></li>
-                    <li><a href="#product3" className="block px-4 py-2 hover:bg-gradient-to-r hover:from-[#7c3aed] hover:to-[#6ee7b7] rounded transition-colors">Consulting</a></li>
-                  </ul>
-                )}
-              </div>
+              <ul className="absolute left-0 top-full w-44 bg-[#181824] border border-[#232336]/60 rounded-xl shadow-lg py-2 z-50 hidden group-hover:block animate-fade-in">
+                <li><a href="#product1" className="block px-4 py-2 hover:bg-gradient-to-r hover:from-[#7c3aed] hover:to-[#6ee7b7] rounded transition-colors">SaaS Platform</a></li>
+                <li><a href="#product2" className="block px-4 py-2 hover:bg-gradient-to-r hover:from-[#6ee7b7] hover:to-[#7c3aed] rounded transition-colors">API Suite</a></li>
+                <li><a href="#product3" className="block px-4 py-2 hover:bg-gradient-to-r hover:from-[#7c3aed] hover:to-[#6ee7b7] rounded transition-colors">Consulting</a></li>
+              </ul>
             </li>
             <li>
               <a href="#contact" className="hover:text-[#4ade80] transition-colors">Contact Us</a>
@@ -78,7 +59,7 @@ export default function Home() {
             <polygon points="0,160 175,0 525,0 700,160 525,320 175,320" fill="url(#geoGradient1)" />
           </svg>
           {/* Full-width grid lines with fade-out */}
-          <svg width="100%" height="320" viewBox="0 0 1000 320" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute left-1/2 top-0 -translate-x-1/2 w-screen h-full opacity-40">
+          <svg width="100%" height="320" viewBox="0 0 1000 320" fill="none" xmlns="http://www.w3.org/2000/svg" className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 w-screen h-full opacity-40 z-0">
             <defs>
               <linearGradient id="fadeH" x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#7c3aed" stopOpacity="0" />
