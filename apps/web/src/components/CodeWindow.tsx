@@ -1,6 +1,14 @@
 import React from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-export default function CodeWindow({ children }: { children: React.ReactNode }) {
+export default function CodeWindow({
+  children,
+  language = "typescript",
+}: {
+  children: string;
+  language?: "typescript" | "bash" | "json";
+}) {
   return (
     <div className="relative bg-[#181825] rounded-xl shadow-lg border border-[#232336] overflow-hidden w-full max-w-xl min-w-[18rem] mx-auto my-8">
       {/* Toolbar */}
@@ -12,9 +20,22 @@ export default function CodeWindow({ children }: { children: React.ReactNode }) 
         </span>
       </div>
       {/* Code content */}
-      <pre className="p-6 text-left text-sm md:text-base text-[#e0e0e0] font-mono bg-transparent whitespace-pre overflow-x-auto overflow-y-auto" style={{ minHeight: 180, maxHeight: 260 }}>
+      <SyntaxHighlighter
+        language={language}
+        style={atomDark}
+        customStyle={{
+          background: "transparent",
+          minHeight: 180,
+          maxHeight: 260,
+          margin: 0,
+          padding: 24,
+          fontSize: "1rem",
+        }}
+        showLineNumbers={false}
+        wrapLongLines={true}
+      >
         {children}
-      </pre>
+      </SyntaxHighlighter>
     </div>
   );
 }
