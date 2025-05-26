@@ -2,7 +2,7 @@
 
 function SectionDivider() {
   return (
-    <div className="relative flex justify-center items-center my-8">
+    <div className="relative flex justify-center items-center">
       <svg
         width="120"
         height="60"
@@ -59,7 +59,8 @@ function SectionDivider() {
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import CodeWindow from "./CodeWindow";
-import ResponsiveGridBackground from "../../components/ResponsiveGridBackground";
+import ResponsiveGridBackground from "@/components/ResponsiveGridBackground";
+import GridAnimatedDots from "@/components/GridAnimatedDots";
 
 export default function MonoSchemaFeaturesPage() {
   return (
@@ -67,6 +68,7 @@ export default function MonoSchemaFeaturesPage() {
       {/* Subtle animated grid background */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <ResponsiveGridBackground />
+        <GridAnimatedDots dotSize={2} />
       </div>
       <Header />
 
