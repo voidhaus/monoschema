@@ -56,11 +56,12 @@ function SectionDivider() {
 }
 
 
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
-import CodeWindow from "./CodeWindow";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import CodeWindow from "@/components/CodeWindow";
 import ResponsiveGridBackground from "@/components/ResponsiveGridBackground";
 import GridAnimatedDots from "@/components/GridAnimatedDots";
+import GradientText from "@/components/GradientText";
 
 export default function MonoSchemaFeaturesPage() {
   return (
@@ -92,7 +93,7 @@ export default function MonoSchemaFeaturesPage() {
       <section className="relative z-10 flex flex-col items-center justify-center text-center px-6 min-h-screen">
         <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-br from-[#00e5ff33] via-[#7C3AED22] to-[#23233600] rounded-full blur-2xl opacity-60 animate-pulse" />
         <h1 className="text-5xl md:text-7xl font-extrabold text-white drop-shadow-lg mb-6 tracking-tight">
-          <span className="text-[#00E5FF]">MonoSchema</span> Features
+          <GradientText>MonoSchema</GradientText> Features
         </h1>
         <p className="text-lg md:text-2xl text-gray-300 font-light mb-10 max-w-2xl">
           A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
