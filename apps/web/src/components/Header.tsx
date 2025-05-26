@@ -1,4 +1,50 @@
+
 import React from "react";
+
+const menuItems = [
+  { label: "Features", href: "/monoschema#features" },
+  { label: "Getting Started", href: "/monoschema#getting-started" },
+  { label: "Examples", href: "/monoschema#examples" },
+  { label: "Docs", href: "https://docs.void.haus/monoschema", external: true },
+  { label: "NPM", href: "https://npmjs.com/package/monoschema", external: true },
+  { label: "GitHub", href: "https://github.com/voidhaus/monoschema", external: true },
+];
+const rpcMenuItems = [
+  { label: "Features", href: "/rpc#features" },
+  { label: "Getting Started", href: "/rpc#getting-started" },
+  { label: "Examples", href: "/rpc#examples" },
+  { label: "Docs", href: "https://docs.void.haus/rpc", external: true },
+  { label: "NPM", href: "https://npmjs.com/package/@voidhaus/rpc", external: true },
+  { label: "GitHub", href: "https://github.com/voidhaus/rpc", external: true },
+];
+
+function Dropdown({ label, items }: { label: string; items: { label: string; href: string; external?: boolean }[] }) {
+  return (
+    <div className="relative group">
+      <button className="flex items-center gap-1 hover:text-[#00E5FF] transition-colors focus:outline-none">
+        {label}
+        <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+      </button>
+      <ul className="absolute left-0 top-full w-48 bg-[#181824] border border-[#232336]/60 rounded-xl shadow-lg py-2 z-50 hidden group-hover:block">
+        {items.map((item) => (
+          <li key={item.label}>
+            <a
+              href={item.href}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noopener noreferrer" : undefined}
+              className="block px-4 py-2 hover:bg-gradient-to-r hover:from-[#00E5FF]/10 hover:to-[#7C3AED]/10 rounded transition-colors"
+            >
+              {item.label}
+              {item.external && (
+                <svg className="inline ml-1 w-3 h-3 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+              )}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const Header = () => (
   <nav className="z-20 w-full flex items-center justify-between px-8 py-6 bg-transparent">
@@ -53,8 +99,9 @@ const Header = () => (
       <span className="text-2xl font-bold text-white tracking-wide">VoidHaus</span>
     </div>
     <div className="flex gap-8 text-white text-base font-medium">
-      <a href="#features" className="hover:text-[#00E5FF] transition">Features</a>
-      <a href="#monoschema" className="hover:text-[#7C3AED] transition">MonoSchema</a>
+      <a href="/blog" className="hover:text-[#00E5FF] transition">Blog</a>
+      <Dropdown label="MonoSchema" items={menuItems} />
+      <Dropdown label="RPC" items={rpcMenuItems} />
       <a href="#contact" className="hover:text-[#F59E42] transition">Contact</a>
     </div>
   </nav>
