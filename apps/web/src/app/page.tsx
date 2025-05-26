@@ -48,7 +48,7 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="relative z-10 flex flex-col items-center text-center px-6 pt-24 pb-32">
         <h1 className="text-5xl md:text-7xl font-extrabold text-white drop-shadow-lg mb-6">
-          Build. Validate. Ship.<br />With 
+          Build. Validate. Ship.<br />With&nbsp;
           <span
             className="bg-gradient-to-r from-[#00E5FF] via-[#7C3AED] to-[#F59E42] bg-clip-text text-transparent"
             style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
