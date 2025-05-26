@@ -1,60 +1,4 @@
-"use client";// Simple glowing gradient divider between sections
-
-function SectionDivider() {
-  return (
-    <div className="relative flex justify-center items-center">
-      <svg
-        width="120"
-        height="60"
-        viewBox="0 0 120 60"
-        fill="none"
-        className="animate-pulse-slow"
-        style={{ filter: 'drop-shadow(0 0 24px #00E5FF88) drop-shadow(0 0 48px #7C3AED44)' }}
-        aria-hidden="true"
-      >
-        {/* Outer glowing ring */}
-        <ellipse
-          cx="60" cy="30" rx="28" ry="28"
-          stroke="url(#divider-gradient)"
-          strokeWidth="4"
-          fill="none"
-          opacity="0.8"
-        />
-        {/* Inner ring for depth */}
-        <ellipse
-          cx="60" cy="30" rx="18" ry="18"
-          stroke="url(#divider-gradient2)"
-          strokeWidth="2"
-          fill="none"
-          opacity="0.5"
-        />
-        {/* Central spark */}
-        <circle
-          cx="60" cy="30" r="4"
-          fill="#fff"
-          opacity="0.95"
-        />
-        <circle
-          cx="60" cy="30" r="8"
-          fill="#00E5FF"
-          opacity="0.25"
-        />
-        <defs>
-          <radialGradient id="divider-gradient2" cx="0" cy="0" r="1" gradientTransform="translate(60 30) scale(18)" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#7C3AED" stopOpacity="0.7" />
-            <stop offset="1" stopColor="#00E5FF" stopOpacity="0.2" />
-          </radialGradient>
-          <linearGradient id="divider-gradient" x1="32" y1="2" x2="88" y2="58" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#00E5FF" stopOpacity="0.8" />
-            <stop offset="0.5" stopColor="#7C3AED" stopOpacity="0.7" />
-            <stop offset="1" stopColor="#F59E42" stopOpacity="0.8" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-  );
-}
-
+"use client";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -62,6 +6,7 @@ import CodeWindow from "@/components/CodeWindow";
 import ResponsiveGridBackground from "@/components/ResponsiveGridBackground";
 import GridAnimatedDots from "@/components/GridAnimatedDots";
 import GradientText from "@/components/GradientText";
+import GradientDivider from "@/components/GradientDivider";
 
 export default function MonoSchemaFeaturesPage() {
   return (
@@ -95,7 +40,7 @@ export default function MonoSchemaFeaturesPage() {
         <h1 className="text-5xl md:text-7xl font-extrabold text-white drop-shadow-lg mb-6 tracking-tight">
           <GradientText>MonoSchema</GradientText> Features
         </h1>
-        <p className="text-lg md:text-2xl text-gray-300 font-light mb-10 max-w-2xl">
+        <p className="text-lg md:text-2xl text-gray-400 font-light mb-10 max-w-2xl">
           A blazing-fast, type-safe schema library for TypeScript. Effortless validation, transformation, and more—built for modern monorepos.
         </p>
       </section>
@@ -107,7 +52,7 @@ export default function MonoSchemaFeaturesPage() {
         <div className="flex-1 flex flex-col items-center md:items-end md:pr-16 z-10">
           <h2 className="text-5xl font-extrabold text-white mb-4 text-center md:text-right drop-shadow-lg">Type-safe Validation</h2>
           <p className="text-[#00E5FF] text-xl font-semibold mb-4 tracking-wide">No more runtime surprises.</p>
-          <p className="text-gray-300 font-light mb-8 text-center md:text-right max-w-md text-xl">Validate your data with full TypeScript type inference and zero runtime overhead.</p>
+          <p className="text-gray-400 font-light mb-8 text-center md:text-right max-w-md text-xl">Validate your data with full TypeScript type inference and zero runtime overhead.</p>
         </div>
         <div className="flex-1 flex justify-center md:justify-start w-full z-10">
           <CodeWindow>{String.raw`
@@ -127,14 +72,14 @@ const result = validate(User, { id: 1, name: 'Tom' });
         </div>
       </section>
 
-      <SectionDivider />
+      <GradientDivider />
       {/* Feature 2 */}
       <section className="relative flex flex-col md:flex-row-reverse items-center justify-center min-h-screen px-6 py-24 overflow-hidden">
         <div className="pointer-events-none absolute z-0 right-1/3 top-1/4 w-[400px] h-[300px] rounded-full bg-gradient-to-br from-[#7C3AED33] to-[#23233600] blur-2xl opacity-60 animate-pulse" />
         <div className="flex-1 flex flex-col items-center md:items-start md:pl-16 z-10">
           <h2 className="text-5xl font-extrabold text-white mb-4 text-center md:text-left drop-shadow-lg">Powerful Transformations</h2>
           <p className="text-[#7C3AED] text-xl font-semibold mb-4 tracking-wide">Shape your data, your way.</p>
-          <p className="text-gray-300 font-light mb-8 text-center md:text-left max-w-md text-xl">Transform and sanitize data as you validate, with built-in and custom transformers.</p>
+          <p className="text-gray-400 font-light mb-8 text-center md:text-left max-w-md text-xl">Transform and sanitize data as you validate, with built-in and custom transformers.</p>
         </div>
         <div className="flex-1 flex justify-center md:justify-end w-full z-10">
           <CodeWindow>{String.raw`
@@ -154,14 +99,14 @@ const user = transform(User, { id: 1, name: '  Tom  ' });
         </div>
       </section>
 
-      <SectionDivider />
+      <GradientDivider />
       {/* Feature 3 */}
       <section className="relative flex flex-col md:flex-row items-center justify-center min-h-screen px-6 py-24 overflow-hidden">
         <div className="pointer-events-none absolute z-0 left-1/3 bottom-1/4 w-[400px] h-[300px] rounded-full bg-gradient-to-br from-[#00e5ff33] to-[#23233600] blur-2xl opacity-60 animate-pulse" />
         <div className="flex-1 flex flex-col items-center md:items-end md:pr-16 z-10">
           <h2 className="text-5xl font-extrabold text-white mb-4 text-center md:text-right drop-shadow-lg">Composable Schemas</h2>
           <p className="text-[#00E5FF] text-xl font-semibold mb-4 tracking-wide">Build complex types, simply.</p>
-          <p className="text-gray-300 font-light mb-8 text-center md:text-right max-w-md text-xl">Compose schemas for complex data structures and reuse them across your codebase.</p>
+          <p className="text-gray-400 font-light mb-8 text-center md:text-right max-w-md text-xl">Compose schemas for complex data structures and reuse them across your codebase.</p>
         </div>
         <div className="flex-1 flex justify-center md:justify-start w-full z-10">
           <CodeWindow>{String.raw`
@@ -180,14 +125,14 @@ const User = schema({
         </div>
       </section>
 
-      <SectionDivider />
+      <GradientDivider />
       {/* Feature 4 */}
       <section className="relative flex flex-col md:flex-row-reverse items-center justify-center min-h-screen px-6 py-24 overflow-hidden">
         <div className="pointer-events-none absolute z-0 right-1/3 bottom-1/4 w-[400px] h-[300px] rounded-full bg-gradient-to-br from-[#7C3AED33] to-[#23233600] blur-2xl opacity-60 animate-pulse" />
         <div className="flex-1 flex flex-col items-center md:items-start md:pl-16 z-10">
           <h2 className="text-5xl font-extrabold text-white mb-4 text-center md:text-left drop-shadow-lg">Monorepo Ready</h2>
           <p className="text-[#F59E42] text-xl font-semibold mb-4 tracking-wide">One source of truth, everywhere.</p>
-          <p className="text-gray-300 font-light mb-8 text-center md:text-left max-w-md text-xl">Share schemas and types across packages for a single source of truth in your monorepo.</p>
+          <p className="text-gray-400 font-light mb-8 text-center md:text-left max-w-md text-xl">Share schemas and types across packages for a single source of truth in your monorepo.</p>
         </div>
         <div className="flex-1 flex justify-center md:justify-end w-full z-10">
           <CodeWindow>{String.raw`
