@@ -8,6 +8,7 @@ import {
 } from './query';
 import { describe, it, expect } from 'vitest';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const testSchema = {
   $type: Object,
   $properties: {
@@ -42,7 +43,7 @@ describe('Query functions', () => {
 
     // This query should not be valid with the TestSchemaType
     query<TestSchemaType>(
-      // @ts-expect-error
+      // @ts-expect-error - This should cause a type error
       eq('gender', 'some value'),
       gt('age', 30),
     )
@@ -520,7 +521,9 @@ describe('Query functions', () => {
     )
 
     // Explicit type parameters also work and enforce constraints
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const explicitEq = eq<TestSchemaType, 'name'>('name', 'John'); // Works
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const explicitGt = gt<TestSchemaType, 'age'>('age', 30); // Works
     
     // These would fail compilation if uncommented:

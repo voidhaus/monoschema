@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { update, set, inc } from './update';
 import { InferTypeFromMonoSchema } from '@voidhaus/monoschema';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const testSchema = {
   $type: Object,
   $properties: {
@@ -37,8 +38,8 @@ describe('Update functions', () => {
     )
 
     update<TestSchemaType>(
-      // @ts-expect-error
-      set('gender', 'Prefer not to say'), // This should cause a type error
+      // @ts-expect-error - This should cause a type error
+      set('gender', 'Prefer not to say'),
     )
   })
 
