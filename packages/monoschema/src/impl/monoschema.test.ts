@@ -33,7 +33,7 @@ describe('monoschema', () => {
     }
     const invalidData: MySchemaType = {
       name: "John Doe",
-      age: "thirty" as any, // Invalid type
+      age: "thirty" as unknown as number, // Invalid type
       isActive: true,
       hobbies: ["reading", "gaming"],
       favouriteNumbers: [1, 2, 3],
@@ -88,6 +88,7 @@ describe('monoschema', () => {
         zipCode: 10001,
       },
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const invalidData = {
       name: "John Doe",
       age: 30,
@@ -106,7 +107,7 @@ describe('monoschema', () => {
       address: {
         street: "123 Main St",
         city: "New York",
-        zipCode: "10001" as any, // Invalid type
+        zipCode: "10001" as unknown, // Invalid type
       },
     })
     // Check the validation results
@@ -251,6 +252,7 @@ describe('monoschema', () => {
     // MonoSchema type should be inferred correctly
     const myFunction = <Schema>(schema: Schema, propertyPath: MonogSchemaPropertPath<Schema>) => {
       const splitPath = (propertyPath as string).split('.')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let currentSchema: any = schema
       for (const part of splitPath) {
         if (currentSchema.$properties && currentSchema.$properties[part]) {
@@ -269,11 +271,12 @@ describe('monoschema', () => {
     expect(myFunction(basicSchema, 'hobbies')).toEqual(true)
 
     // Invalid usage (type-level, not runtime)
-    // @ts-expect-error
+    // @ts-expect-error - should give a type error at compile time
     expect(() => myFunction(basicSchema, 'doesNotExist')).throws() // Invalid, should give a type error at compile time
   })
 
   it('should allow type intererence', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -285,6 +288,7 @@ describe('monoschema', () => {
     } as const;
     // MonoSchema type should be inferred correctly
     type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const validData: MySchemaType = {
       name: "John Doe",
       age: 30,
@@ -292,9 +296,10 @@ describe('monoschema', () => {
       hobbies: ["reading", "gaming"],
     }
     // Error here should be caught at compile time because age is the wrong type
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const invalidData: MySchemaType = {
       name: "John Doe",
-      age: "thirty" as any, // Invalid type
+      age: "thirty" as unknown as number, // Invalid type
       isActive: true,
       hobbies: ["reading", "gaming"],
     }
@@ -381,11 +386,11 @@ describe('monoschema', () => {
     // Error here should be caught at compile time because age is the wrong type
     const invalidData: MySchemaType = {
       name: "John Doe",
-      // @ts-expect-error
+      // @ts-expect-error - should error: string is not assignable to number
       age: "40", // should error: string is not assignable to number
-      // @ts-expect-error
+      // @ts-expect-error - should error: string is not assignable to "value1" | "value2" | "value3"
       status: 4,
-      // @ts-expect-error
+      // @ts-expect-error - should error: number is not assignable to 1 | 2 | 3
       numStatus: "notAString", // Invalid enum value (will be unknown)
     }
 
@@ -452,9 +457,11 @@ describe('monoschema', () => {
       version: "1.0.0",
       types: [MyNumEnum],
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const monoSchema = configureMonoSchema({
       plugins: [basicPlugin, basicPlugin2],
     })
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -467,18 +474,20 @@ describe('monoschema', () => {
     type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
 
     // MonoSchema type should be inferred correctly
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const validData: MySchemaType = {
       name: "John Doe",
       age: 30,
       statusArrayOfEnums: ["value1", "value2"],
       numStatusArrayOfEnums: [1, 2],
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const invalidData: MySchemaType = {
       name: "John Doe",
       age: 30,
-      // @ts-expect-error
+      // @ts-expect-error - should error: string is not assignable to "value1" | "value2" | "value3"
       statusArrayOfEnums: ["value1", "value2", "invalidValue"], // Invalid enum value
-      // @ts-expect-error
+      // @ts-expect-error - should error: number is not assignable to 1 | 2 | 3
       numStatusArrayOfEnums: [1, 2, 4], // Invalid enum value
     }
   })
@@ -619,17 +628,19 @@ describe('monoschema', () => {
     } as const
     type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
     // MonoSchema type should be inferred correctly
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const validData: MySchemaType = {
       name: "John Doe",
       age: 25,
     }
     // Validate the data against the schema
     // Expect a type error because invalidConstraint is not a valid constraint
-    // @ts-expect-error
+    // @ts-expect-error - should error: invalidConstraint is not a valid constraint
     configureMonoSchema().validate(basicSchema)
   })
 
   it('should allow updating of property values on inferred types', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -653,7 +664,7 @@ describe('monoschema', () => {
     validData.age = 28; // Update age
     validData.isActive = false; // Update isActive
     validData.hobbies.push("cooking"); // Add a hobby
-    // @ts-expect-error
+    // @ts-expect-error - readonly property
     validData.hasOptedInMarketing = false; // Attempt to update readonly property (should error)
   })
 
@@ -675,7 +686,7 @@ describe('monoschema', () => {
     }
     const invalidData: MySchemaType = {
       name: "John Doe",
-      birthDate: "1990-01-01" as any, // Invalid type
+      birthDate: "1990-01-01" as unknown as Date, // Invalid type
       lastLogin: new Date("2023-10-01"),
     }
     // Validate the data against the schema

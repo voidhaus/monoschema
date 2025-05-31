@@ -1,60 +1,77 @@
 // --- TypeScript type inference from MonoSchema ---
 import type { Constraint } from "./constraints";
 
-// (Transformer types removed from core. Plugins may define their own types.)
-// Recursively infer the TypeScript type from a MonoSchema definition
 // Utility type to avoid intersection with empty object
+// TODO: Figure out if we can remove this linting rule and replace {} with object
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type NonEmpty<T> = keyof T extends never ? {} : T;
 
-export type InferTypeFromMonoSchema<T> =
-  T extends { $type: infer U }
-    ? U extends { tsType: infer X }
-      ? X
-      : U extends readonly [infer ArrType]
-        ? ArrType extends { tsType: infer X }
-          ? X[]
-          : InferTypeFromMonoSchema<{ $type: ArrType }> []
-        : U extends typeof String
-          ? string
-        : U extends typeof Number
-          ? number
-        : U extends typeof Boolean
-          ? boolean
-        : U extends typeof Date
-          ? Date
-        : U extends typeof Object
-          ? T extends { $properties: infer P }
-            ? (
-                NonEmpty<{
-                  -readonly [K in keyof P as
-                    P[K] extends { $readonly: true } ? never :
-                    P[K] extends { $optional: true } ? never : K
-                  ]: InferTypeFromMonoSchema<P[K]>
-                }> &
-                NonEmpty<{
-                  -readonly [K in keyof P as
-                    P[K] extends { $readonly: true } ? never :
-                    P[K] extends { $optional: true } ? K : never
-                  ]?: InferTypeFromMonoSchema<P[K]>
-                }> &
-                NonEmpty<{
-                  readonly [K in keyof P as
-                    P[K] extends { $readonly: true } ?
-                      P[K] extends { $optional: true } ? never : K
-                    : never
-                  ]: InferTypeFromMonoSchema<P[K]>
-                }> &
-                NonEmpty<{
-                  readonly [K in keyof P as
-                    P[K] extends { $readonly: true } ?
-                      P[K] extends { $optional: true } ? K : never
-                    : never
-                  ]?: InferTypeFromMonoSchema<P[K]>
-                }>
-              )
-            : unknown
-          : unknown
-    : unknown;
+// Helper types for cleaner type inference
+type InferBuiltinType<T> = 
+  T extends typeof String ? string :
+  T extends typeof Number ? number :
+  T extends typeof Boolean ? boolean :
+  T extends typeof Date ? Date :
+  never;
+
+type InferCustomType<T> = T extends { tsType: infer X } ? X : unknown;
+
+type InferArrayType<T> = T extends readonly [infer ItemType]
+  ? ItemType extends { tsType: infer X }
+    ? X[]
+    : InferTypeFromMonoSchema<{ $type: ItemType }>[]
+  : never;
+
+// Helper types for object property inference with different modifiers
+type RequiredProps<P> = {
+  -readonly [K in keyof P as 
+    P[K] extends { $readonly: true } ? never :
+    P[K] extends { $optional: true } ? never : K
+  ]: InferTypeFromMonoSchema<P[K]>
+};
+
+type OptionalProps<P> = {
+  -readonly [K in keyof P as 
+    P[K] extends { $readonly: true } ? never :
+    P[K] extends { $optional: true } ? K : never
+  ]?: InferTypeFromMonoSchema<P[K]>
+};
+
+type ReadonlyRequiredProps<P> = {
+  readonly [K in keyof P as 
+    P[K] extends { $readonly: true } ?
+      P[K] extends { $optional: true } ? never : K
+    : never
+  ]: InferTypeFromMonoSchema<P[K]>
+};
+
+type ReadonlyOptionalProps<P> = {
+  readonly [K in keyof P as 
+    P[K] extends { $readonly: true } ?
+      P[K] extends { $optional: true } ? K : never
+    : never
+  ]?: InferTypeFromMonoSchema<P[K]>
+};
+
+type InferObjectType<T> = T extends { $properties: infer P }
+  ? NonEmpty<RequiredProps<P>> & 
+    NonEmpty<OptionalProps<P>> & 
+    NonEmpty<ReadonlyRequiredProps<P>> & 
+    NonEmpty<ReadonlyOptionalProps<P>>
+  : unknown;
+
+// Main type inference utility - now much cleaner and easier to understand
+export type InferTypeFromMonoSchema<T> = T extends { $type: infer U }
+  ? U extends { tsType: unknown }
+    ? InferCustomType<U>
+    : U extends readonly unknown[]
+      ? InferArrayType<U>
+      : U extends typeof Object
+        ? InferObjectType<T>
+        : InferBuiltinType<U>
+  : unknown;
+
+// Schema type definitions
 type MonoSchemaType =
   | StringConstructor
   | NumberConstructor
@@ -62,22 +79,18 @@ type MonoSchemaType =
   | DateConstructor
   | ObjectConstructor
   | ArrayConstructor
-  | ((...args: any[]) => { validate: (value: unknown) => any });
+  | ((...args: unknown[]) => { validate: (value: unknown) => unknown });
 
-// MonoSchemaProperty is the extensible schema node type
-export type MonoSchemaProperty =
-  | ({
-      $type: MonoSchemaType | readonly MonoSchemaType[];
-      $optional?: boolean;
-      $readonly?: boolean;
-      $properties?: Record<string, MonoSchemaProperty>;
-      $constraints?: readonly Constraint[];
-      // Extensible for plugin fields
-      [key: string]: unknown;
-    })
-  | MonoSchema;
+export type MonoSchemaProperty = {
+  $type: MonoSchemaType | readonly MonoSchemaType[];
+  $optional?: boolean;
+  $readonly?: boolean;
+  $properties?: Record<string, MonoSchemaProperty>;
+  $constraints?: readonly Constraint[];
+  // Extensible for plugin fields
+  [key: string]: unknown;
+};
 
-// MonoSchema is the root schema type, extensible for plugin fields
 export type MonoSchema = {
   $type: MonoSchemaType | readonly MonoSchemaType[];
   $optional?: boolean;
@@ -118,7 +131,8 @@ type ValidationResult<T = unknown> = {
   data?: T;
 };
 
-function getTypeName(type: any): string {
+// Type validation utilities
+function getTypeName(type: unknown): string {
   if (
     type === String ||
     type === Number ||
@@ -127,22 +141,22 @@ function getTypeName(type: any): string {
     type === Object ||
     type === Array
   ) {
-    return type.name;
+    return (type as { name: string }).name;
   }
   if (typeof type === "function") {
     return "CustomValidator";
   }
   if (Array.isArray(type)) return "Array";
-  if (typeof type === "object" && type !== null && type.constructor && type.constructor.name)
-    return type.constructor.name;
+  if (typeof type === "object" && type !== null && (type as { constructor?: { name?: string } }).constructor?.name)
+    return (type as { constructor: { name: string } }).constructor.name;
   return typeof type;
 }
 
 function getValueTypeName(value: unknown): string {
   if (value === null) return "null";
   if (Array.isArray(value)) return "Array";
-  if (typeof value === "object" && value && (value as any).constructor && (value as any).constructor.name)
-    return (value as any).constructor.name;
+  if (typeof value === "object" && value && (value as Record<string, unknown>).constructor && (value as Record<string, unknown>).constructor.name)
+    return (value as Record<string, unknown>).constructor.name;
   return typeof value === "string"
     ? "String"
     : typeof value === "number"
@@ -152,324 +166,262 @@ function getValueTypeName(value: unknown): string {
     : typeof value;
 }
 
-function isCustomType(type: any): boolean {
-  return typeof type === "function" && ![String, Number, Boolean, Date, Object, Array].includes(type);
+function isCustomType(type: unknown): boolean {
+  return typeof type === "function" && ![String, Number, Boolean, Date, Object, Array].includes(type as never);
 }
 
-function validateValue(
+// Validation constraint checking
+function validateConstraints(
+  value: unknown,
+  constraints: readonly Constraint[] | undefined,
+  path: string,
+  expectedType: string
+): ValidationError[] {
+  if (!Array.isArray(constraints)) return [];
+  
+  const errors: ValidationError[] = [];
+  for (const constraint of constraints) {
+    if (typeof constraint.validate === "function") {
+      const valid = constraint.validate(value);
+      if (!valid) {
+        errors.push({
+          path,
+          message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
+          expected: expectedType,
+          received: getValueTypeName(value),
+          value,
+        });
+      }
+    }
+  }
+  return errors;
+}
+
+// Plugin validation
+function validateCustomType(
   schema: MonoSchemaProperty,
   value: unknown,
   path: string,
-  plugins: Plugin[] = []
+  plugins: Plugin[]
 ): ValidationError[] {
-  // Handle array of types (for arrays)
-  if (Array.isArray(schema.$type)) {
-    if (!Array.isArray(value)) {
-      return [
-        {
-          path,
-          message: `Expected type Array, but received ${getValueTypeName(value)}`,
-          expected: "Array",
-          received: getValueTypeName(value),
-          value,
-        },
-      ];
+  // Find plugin type
+  const pluginType = plugins
+    .flatMap((p) => p.types)
+    .find((t) => {
+      if (t === schema.$type) return true;
+      if (typeof t === "function" && typeof schema.$type === "function") {
+        return t.name === schema.$type.name;
+      }
+      return false;
+    });
+
+  // If $type is a function (factory), call it; if it's an object with validate, use it directly
+  let pluginInstance: { validate: (value: unknown) => unknown } | null = null;
+  
+  if (
+    typeof schema.$type === "function" &&
+    schema.$type !== String &&
+    schema.$type !== Number &&
+    schema.$type !== Boolean &&
+    schema.$type !== Date &&
+    schema.$type !== Object &&
+    schema.$type !== Array
+  ) {
+    try {
+      pluginInstance = (schema.$type as (...args: unknown[]) => { validate: (value: unknown) => unknown })();
+    } catch {
+      pluginInstance = null;
     }
-    // Validate each item in the array
-    const itemType = schema.$type[0];
-    if (itemType === undefined) {
-      return [
-        {
-          path,
-          message: `Array schema missing item type`,
-          expected: "Array",
-          received: getValueTypeName(value),
-          value,
-        },
-      ];
-    }
-    return value
-      .map((item, idx) =>
-        validateValue(
-          { $type: itemType, $constraints: (schema as any).$constraints },
-          item,
-          path ? `${path}.${idx}` : `${idx}`,
-          plugins
-        )
-      )
-      .flat();
+  } else if (
+    typeof schema.$type === "object" && 
+    schema.$type !== null && 
+    typeof (schema.$type as unknown as Record<string, unknown>).validate === "function"
+  ) {
+    pluginInstance = schema.$type as unknown as { validate: (value: unknown) => unknown };
   }
 
-  // Handle custom plugin types
-  if (isCustomType(schema.$type) || (typeof schema.$type === "object" && schema.$type !== null && typeof (schema.$type as any).validate === "function")) {
-    // Find plugin type
-    const pluginType = plugins
-      .flatMap((p) => p.types)
-      .find((t) => {
-        if (t === schema.$type) return true;
-        if (typeof t === "function" && typeof schema.$type === "function") {
-          return t.name === schema.$type.name;
-        }
-        return false;
-      });
-    // If $type is a function (factory), call it; if it's an object with validate, use it directly
-    let pluginInstance: any = null;
-    if (
-      typeof schema.$type === "function" &&
-      schema.$type !== String &&
-      schema.$type !== Number &&
-      schema.$type !== Boolean &&
-      schema.$type !== Date &&
-      schema.$type !== Object &&
-      schema.$type !== Array
-    ) {
-      try {
-        pluginInstance = (schema.$type as (...args: any[]) => { validate: (value: unknown) => any })();
-      } catch (e) {
-        pluginInstance = null;
-      }
-    } else if (typeof schema.$type === "object" && schema.$type !== null && typeof (schema.$type as any).validate === "function") {
-      pluginInstance = schema.$type;
-    }
-    if (pluginInstance && typeof (pluginInstance as { validate: (value: unknown) => any }).validate === "function") {
-      const result = (pluginInstance as { validate: (value: unknown) => any }).validate(value);
-      if (result && result.valid === false && Array.isArray(result.errors)) {
+  if (pluginInstance && typeof pluginInstance.validate === "function") {
+    const result = pluginInstance.validate(value);
+    if (result && typeof result === "object" && result !== null) {
+      const validationResult = result as { valid?: boolean; errors?: unknown[] };
+      if (validationResult.valid === false && Array.isArray(validationResult.errors)) {
         // Patch error path
-        return result.errors.map((err: any) => ({
-          path,
-          message: err.message,
-          expected: err.expected,
-          received: getValueTypeName(value),
-          value,
-        }));
+        return validationResult.errors.map((err: unknown) => {
+          const error = err as Record<string, unknown>;
+          return {
+            path,
+            message: String(error.message || "Validation failed"),
+            expected: String(error.expected || "Valid value"),
+            received: getValueTypeName(value),
+            value,
+          };
+        });
       }
-      // If result is valid or no errors, return []
-      return [];
     }
-    // If pluginType is registered but no validate, treat as valid
-    if (pluginType) {
-      return [];
-    }
+    // If result is valid or no errors, return []
+    return [];
   }
 
-  // Handle built-in types
+  // If pluginType is registered but no validate, treat as valid
+  if (pluginType) {
+    return [];
+  }
+
+  return [];
+}
+
+// Built-in type validation
+function validateBuiltinType(
+  schema: MonoSchemaProperty,
+  value: unknown,
+  path: string
+): ValidationError[] {
+  const createError = (expected: string): ValidationError => ({
+    path,
+    message: `Expected type ${expected}, but received ${getValueTypeName(value)}`,
+    expected,
+    received: getValueTypeName(value),
+    value,
+  });
+
   if (schema.$type === String) {
     if (typeof value !== "string") {
-      return [
-        {
-          path,
-          message: `Expected type String, but received ${getValueTypeName(value)}`,
-          expected: "String",
-          received: getValueTypeName(value),
-          value,
-        },
-      ];
+      return [createError("String")];
     }
-    // Constraints for string
-    if (Array.isArray((schema as any).$constraints)) {
-      const constraints = (schema as any).$constraints;
-      const constraintErrors = constraints
-        .map((constraint: any) => {
-          if (typeof constraint.validate === "function") {
-            const valid = constraint.validate(value);
-            if (!valid) {
-              return {
-                path,
-                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
-                expected: "String",
-                received: getValueTypeName(value),
-                value,
-              };
-            }
-          }
-          return null;
-        })
-        .filter(Boolean);
-      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
-    }
-    return [];
+    return validateConstraints(value, schema.$constraints, path, "String");
   }
+
   if (schema.$type === Number) {
     if (typeof value !== "number") {
-      return [
-        {
-          path,
-          message: `Expected type Number, but received ${getValueTypeName(value)}`,
-          expected: "Number",
-          received: getValueTypeName(value),
-          value,
-        },
-      ];
+      return [createError("Number")];
     }
-    // Constraints for number
-    if (Array.isArray((schema as any).$constraints)) {
-      const constraints = (schema as any).$constraints;
-      const constraintErrors = constraints
-        .map((constraint: any) => {
-          if (typeof constraint.validate === "function") {
-            const valid = constraint.validate(value);
-            if (!valid) {
-              return {
-                path,
-                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
-                expected: "Number",
-                received: getValueTypeName(value),
-                value,
-              };
-            }
-          }
-          return null;
-        })
-        .filter(Boolean);
-      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
-    }
-    return [];
+    return validateConstraints(value, schema.$constraints, path, "Number");
   }
+
   if (schema.$type === Boolean) {
     if (typeof value !== "boolean") {
-      return [
-        {
-          path,
-          message: `Expected type Boolean, but received ${getValueTypeName(value)}`,
-          expected: "Boolean",
-          received: getValueTypeName(value),
-          value,
-        },
-      ];
+      return [createError("Boolean")];
     }
-    // Constraints for boolean (if ever needed)
-    if (Array.isArray((schema as any).$constraints)) {
-      const constraints = (schema as any).$constraints;
-      const constraintErrors = constraints
-        .map((constraint: any) => {
-          if (typeof constraint.validate === "function") {
-            const valid = constraint.validate(value);
-            if (!valid) {
-              return {
-                path,
-                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
-                expected: "Boolean",
-                received: getValueTypeName(value),
-                value,
-              };
-            }
-          }
-          return null;
-        })
-        .filter(Boolean);
-      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
-    }
-    return [];
+    return validateConstraints(value, schema.$constraints, path, "Boolean");
   }
+
   if (schema.$type === Date) {
     if (!(value instanceof Date)) {
-      return [
-        {
-          path,
-          message: `Expected type Date, but received ${getValueTypeName(value)}`,
-          expected: "Date",
-          received: getValueTypeName(value),
-          value,
-        },
-      ];
+      return [createError("Date")];
     }
-    // Constraints for date (if ever needed)
-    if (Array.isArray((schema as any).$constraints)) {
-      const constraints = (schema as any).$constraints;
-      const constraintErrors = constraints
-        .map((constraint: any) => {
-          if (typeof constraint.validate === "function") {
-            const valid = constraint.validate(value);
-            if (!valid) {
-              return {
-                path,
-                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
-                expected: "Date",
-                received: getValueTypeName(value),
-                value,
-              };
-            }
-          }
-          return null;
-        })
-        .filter(Boolean);
-      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
-    }
-    return [];
+    return validateConstraints(value, schema.$constraints, path, "Date");
   }
+
   if (schema.$type === Object) {
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
-      return [
-        {
-          path,
-          message: `Expected type Object, but received ${getValueTypeName(value)}`,
-          expected: "Object",
-          received: getValueTypeName(value),
-          value,
-        },
-      ];
+      return [createError("Object")];
     }
-    // Constraints for object (if ever needed)
-    if (Array.isArray((schema as any).$constraints)) {
-      const constraints = (schema as any).$constraints;
-      const constraintErrors = constraints
-        .map((constraint: any) => {
-          if (typeof constraint.validate === "function") {
-            const valid = constraint.validate(value);
-            if (!valid) {
-              return {
-                path,
-                message: typeof constraint.message === "function" ? constraint.message(value) : "Constraint failed",
-                expected: "Object",
-                received: getValueTypeName(value),
-                value,
-              };
-            }
-          }
-          return null;
-        })
-        .filter(Boolean);
-      if (constraintErrors.length > 0) return constraintErrors as ValidationError[];
-    }
+
+    // Validate constraints first
+    const constraintErrors = validateConstraints(value, schema.$constraints, path, "Object");
+    if (constraintErrors.length > 0) return constraintErrors;
+
     // Validate properties
     if (schema.$properties) {
       let errors: ValidationError[] = [];
       for (const key in schema.$properties) {
         const propSchema = schema.$properties[key];
         if (!propSchema) continue;
-        if (
-          (value as any)[key] === undefined ||
-          (value as any)[key] === null
-        ) {
+
+        const propValue = (value as Record<string, unknown>)[key];
+        const propPath = path ? `${path}.${key}` : key;
+
+        if (propValue === undefined || propValue === null) {
           if (!propSchema.$optional) {
             errors.push({
-              path: path ? `${path}.${key}` : key,
+              path: propPath,
               message: `Missing required property`,
-              expected: getTypeName((propSchema as any).$type),
+              expected: getTypeName(propSchema.$type),
               received: "undefined",
               value: undefined,
             });
           }
         } else {
-          errors = errors.concat(
-            validateValue(
-              propSchema,
-              (value as any)[key],
-              path ? `${path}.${key}` : key,
-              plugins
-            )
-          );
+          errors = errors.concat(validateValue(propSchema, propValue, propPath, []));
         }
       }
       return errors;
     }
     return [];
   }
+
   return [];
 }
 
+// Array validation
+function validateArrayType(
+  schema: MonoSchemaProperty,
+  value: unknown,
+  path: string,
+  plugins: Plugin[]
+): ValidationError[] {
+  if (!Array.isArray(schema.$type)) return [];
 
-// Recursively run all plugin prevalidation functions for every property
+  if (!Array.isArray(value)) {
+    return [{
+      path,
+      message: `Expected type Array, but received ${getValueTypeName(value)}`,
+      expected: "Array",
+      received: getValueTypeName(value),
+      value,
+    }];
+  }
+
+  const itemType = schema.$type[0];
+  if (itemType === undefined) {
+    return [{
+      path,
+      message: `Array schema missing item type`,
+      expected: "Array",
+      received: getValueTypeName(value),
+      value,
+    }];
+  }
+
+  return value
+    .map((item, idx) =>
+      validateValue(
+        { $type: itemType, $constraints: schema.$constraints },
+        item,
+        path ? `${path}.${idx}` : `${idx}`,
+        plugins
+      )
+    )
+    .flat();
+}
+
+// Main validation function
+function validateValue(
+  schema: MonoSchemaProperty,
+  value: unknown,
+  path: string,
+  plugins: Plugin[] = []
+): ValidationError[] {
+  // Handle array types
+  if (Array.isArray(schema.$type)) {
+    return validateArrayType(schema, value, path, plugins);
+  }
+
+  // Handle custom plugin types
+  if (
+    isCustomType(schema.$type) || 
+    (typeof schema.$type === "object" && 
+     schema.$type !== null && 
+     typeof (schema.$type as unknown as Record<string, unknown>).validate === "function")
+  ) {
+    return validateCustomType(schema, value, path, plugins);
+  }
+
+  // Handle built-in types
+  return validateBuiltinType(schema, value, path);
+}
+
+// Prevalidation processing
 function runPrevalidation(
   schema: MonoSchemaProperty,
   value: unknown,
@@ -477,6 +429,7 @@ function runPrevalidation(
   plugins: Plugin[]
 ): unknown {
   let result = value;
+  
   // Run all plugin prevalidate functions for this property
   for (const plugin of plugins) {
     if (plugin.prevalidate) {
@@ -485,27 +438,29 @@ function runPrevalidation(
       }
     }
   }
-  // Recurse for objects and arrays
+
+  // Recurse for arrays and objects
   if (Array.isArray(schema.$type) && Array.isArray(result)) {
     const itemType = schema.$type[0];
     return result.map((item, idx) =>
       runPrevalidation(
-        { $type: itemType, $constraints: (schema as any).$constraints },
+        { $type: itemType, $constraints: schema.$constraints },
         item,
         path ? `${path}.${idx}` : `${idx}`,
         plugins
       )
     );
   }
+
   if (schema.$type === Object && schema.$properties && typeof result === 'object' && result !== null && !Array.isArray(result)) {
-    const out: any = { ...result };
+    const out: Record<string, unknown> = { ...result };
     for (const key in schema.$properties) {
       if (Object.prototype.hasOwnProperty.call(schema.$properties, key)) {
         const propSchema = schema.$properties[key];
         if (!propSchema) continue;
         out[key] = runPrevalidation(
           propSchema,
-          (result as any)[key],
+          (result as Record<string, unknown>)[key],
           path ? `${path}.${key}` : key,
           plugins
         );
@@ -513,65 +468,8 @@ function runPrevalidation(
     }
     return out;
   }
+  
   return result;
-}
-
-function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
-  const plugins = options.plugins || [];
-  return {
-    validate: <T extends MonoSchema>(schema: T) => (value: unknown): ValidationResult<InferTypeFromMonoSchema<T>> => {
-      try {
-        const prevalidated = runPrevalidation(schema, value, "", plugins);
-        const errors = validateValue(schema, prevalidated, "", plugins);
-        return {
-          valid: errors.length === 0,
-          errors,
-          data: errors.length === 0 ? (prevalidated as InferTypeFromMonoSchema<T>) : undefined,
-        };
-      } catch (error) {
-        if (error instanceof Error) {
-          // Parse transformation errors
-          const match = error.message.match(/^(.+?): (.+)$/);
-          if (match) {
-            const [, path, message] = match;
-            // Extract the field value from the original input
-            const fieldValue = getValueAtPropertyPath(value, path || '');
-            // Try to get the property schema at the error path
-            const propertySchema = getSchemaAtPropertyPath(schema, path || '');
-            return {
-              valid: false,
-              errors: [{
-                path: path || '',
-                message: message || error.message,
-                expected: getTypeName((propertySchema as any)?.$type ?? (schema as any).$type),
-                received: getValueTypeName(fieldValue),
-                value: fieldValue,
-              }],
-              data: undefined,
-            };
-// Helper function to get schema at a property path
-function getSchemaAtPropertyPath(schema: unknown, path: string): unknown {
-  if (!path || typeof schema !== 'object' || schema === null) {
-    return schema;
-  }
-  const keys = path.split('.');
-  let current: any = schema;
-  for (const key of keys) {
-    if (!current || typeof current !== 'object') return undefined;
-    if (current.$properties && key in current.$properties) {
-      current = current.$properties[key];
-    } else {
-      return undefined;
-    }
-  }
-  return current;
-}
-          }
-        }
-        throw error;
-      }
-    },
-  };
 }
 
 // Helper function to get value at a property path
@@ -581,16 +479,81 @@ function getValueAtPropertyPath(obj: unknown, path: string): unknown {
   }
   
   const keys = path.split('.');
-  let current = obj;
+  let current: unknown = obj;
   
   for (const key of keys) {
     if (typeof current !== 'object' || current === null || Array.isArray(current)) {
       return undefined;
     }
-    current = (current as any)[key];
+    current = (current as Record<string, unknown>)[key];
   }
   
   return current;
+}
+
+// Helper function to get schema at a property path
+function getSchemaAtPropertyPath(schema: unknown, path: string): unknown {
+  if (!path || typeof schema !== 'object' || schema === null) {
+    return schema;
+  }
+  
+  const keys = path.split('.');
+  let current: unknown = schema;
+  
+  for (const key of keys) {
+    if (!current || typeof current !== 'object') return undefined;
+    const currentSchema = current as Record<string, unknown>;
+    if (currentSchema.$properties && key in (currentSchema.$properties as Record<string, unknown>)) {
+      current = (currentSchema.$properties as Record<string, unknown>)[key];
+    } else {
+      return undefined;
+    }
+  }
+  
+  return current;
+}
+
+// Main configuration function
+function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
+  const plugins = options.plugins || [];
+  return {
+    validate: <T extends MonoSchema>(schema: T) => 
+      (value: unknown): ValidationResult<InferTypeFromMonoSchema<T>> => {
+        try {
+          const prevalidated = runPrevalidation(schema, value, "", plugins);
+          const errors = validateValue(schema, prevalidated, "", plugins);
+          return {
+            valid: errors.length === 0,
+            errors,
+            data: errors.length === 0 ? (prevalidated as InferTypeFromMonoSchema<T>) : undefined,
+          };
+        } catch (error) {
+          if (error instanceof Error) {
+            // Parse transformation errors
+            const match = error.message.match(/^(.+?): (.+)$/);
+            if (match) {
+              const [, path, message] = match;
+              // Extract the field value from the original input
+              const fieldValue = getValueAtPropertyPath(value, path || '');
+              // Try to get the property schema at the error path
+              const propertySchema = getSchemaAtPropertyPath(schema, path || '');
+              return {
+                valid: false,
+                errors: [{
+                  path: path || '',
+                  message: message || error.message,
+                  expected: getTypeName((propertySchema as MonoSchemaProperty)?.$type ?? schema.$type),
+                  received: getValueTypeName(fieldValue),
+                  value: fieldValue,
+                }],
+                data: undefined,
+              };
+            }
+          }
+          throw error;
+        }
+      },
+  };
 }
 
 // --- Type inference for property paths ---
@@ -603,13 +566,13 @@ type Join<K, P> = K extends string
   : never;
 
 // Recursively get all property paths from an inferred TypeScript type (limited depth)
-type PropertyPathHelper<T, Depth extends readonly any[] = []> = 
+type PropertyPathHelper<T, Depth extends readonly unknown[] = []> = 
   Depth['length'] extends 3 ? never : // Limit recursion depth to 3
-  T extends Record<string, any>
+  T extends Record<string, unknown>
     ? {
         [K in keyof T]: K extends string
-          ? T[K] extends Record<string, any>
-            ? K | Join<K, PropertyPathHelper<T[K], [...Depth, any]>>
+          ? T[K] extends Record<string, unknown>
+            ? K | Join<K, PropertyPathHelper<T[K], [...Depth, unknown]>>
             : K
           : never;
       }[keyof T]
@@ -635,7 +598,7 @@ export type ValueAtPath<T, P extends string> = P extends keyof T
 // Recursively get all property paths from a schema
 type MonogSchemaPropertPathHelper<T> = T extends { $properties: infer P }
   ? {
-      [K in keyof P]: P[K] extends { $properties: any }
+      [K in keyof P]: P[K] extends { $properties: unknown }
         ? K extends string
           ? K | Join<K, MonogSchemaPropertPathHelper<P[K]>>
           : never
