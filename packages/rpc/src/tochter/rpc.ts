@@ -135,8 +135,14 @@ export interface RpcApp<T> {
   callProcedure(request: JsonRpcRequest): JsonRpcResponse;
 }
 
-// Router function type
+// Router function type with overloads for type checking and inference
 export interface RpcRouter {
+  // Overload for when expected type is provided - validates definition matches expected structure
+  <TExpected extends RpcApp<unknown>>(
+    definition: TExpected extends RpcApp<infer TDef> ? TDef : never
+  ): TExpected;
+  
+  // Overload for type inference when no generic is provided
   <T extends Record<string, Procedure<unknown, unknown> | NamespaceWrapper<unknown>> | NamespaceWrapper<unknown>>(
     definition: T
   ): RpcApp<T>;

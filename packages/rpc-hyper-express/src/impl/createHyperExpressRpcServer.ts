@@ -2,7 +2,6 @@ import { RpcApp } from "@voidhaus/rpc";
 import HyperExpress from "hyper-express";
 
 export type HyperExpressConfigOptions = {
-  port: number;
   rpcPath?: string;
 };
 
