@@ -375,7 +375,7 @@ describe('RPC Tests', () => {
       jsonrpc: '2.0',
       error: {
         code: -32603,
-        message: 'Something went wrong with World',
+        message: 'Internal error: Something went wrong with World',
       },
       id: 1,
     }
@@ -428,7 +428,7 @@ describe('RPC Tests', () => {
       jsonrpc: '2.0',
       error: {
         code: -32602,
-        message: 'Invalid params: Missing required parameter "name"',
+        message: 'Invalid params(name): Missing required property',
       },
       id: 1,
     }
@@ -478,5 +478,101 @@ describe('RPC Tests', () => {
     }
     // @ts-expect-error - Intentionally passing an invalid string body, should only accept an object
     expect(myApp.callProcedure(invalidJsonRpcBody)).toEqual(expectedBodyErrorOutput);
+  })
+
+  it('should validate input parameters correctly using monoschema', () => {
+    const router = createRpc({
+      monoschema: configureMonoSchema(),
+    })
+    const myApp = router(
+      namespace({
+        validateInput: procedure(
+          input({
+            $type: Object,
+            $properties: {
+              name: {
+                $type: String,
+              },
+              age: {
+                $type: Number,
+              },
+            },
+          } as const),
+          output({
+            $type: Object,
+            $properties: {
+              message: {
+                $type: String,
+              },
+            },
+          } as const),
+          resolver(({ name, age }) => {
+            return {
+              message: `Hello ${name}, you are ${age} years old!`,
+            };
+          })
+        )
+      }),
+    )
+    // Type inference for the application type
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    type MyAppType = InferRpcContract<typeof myApp>;
+    
+    const validJsonRpc = {
+      jsonrpc: '2.0',
+      method: 'validateInput',
+      params: {
+        name: 'Alice',
+        age: 30,
+      },
+      id: 1,
+    }
+    const expectedValidOutput = {
+      jsonrpc: '2.0',
+      result: {
+        message: 'Hello Alice, you are 30 years old!',
+      },
+      error: null,
+      id: 1,
+    }
+    expect(myApp.callProcedure(validJsonRpc)).toEqual(expectedValidOutput);
+
+    const invalidJsonRpc = {
+      jsonrpc: '2.0',
+      method: 'validateInput',
+      params: {
+        name: 'Alice',
+        // Missing 'age' parameter
+      },
+      id: 1,
+    }
+    const expectedInvalidOutput = {
+      jsonrpc: '2.0',
+      error: {
+        code: -32602,
+        message: 'Invalid params(age): Missing required property',
+      },
+      id: 1,
+    }
+    expect(myApp.callProcedure(invalidJsonRpc)).toEqual(expectedInvalidOutput);
+
+    const invalidTypeJsonRpc = {
+      jsonrpc: '2.0',
+      method: 'validateInput',
+      params: {
+        name: 'Alice',
+        age: 'thirty', // Invalid type for age
+      },
+      id: 1,
+    }
+    const expectedTypeErrorOutput = {
+      jsonrpc: '2.0',
+      error: {
+        code: -32602,
+        message: 'Invalid params(age): Expected type Number, but received String',
+      },
+      id: 1,
+    }
+    expect(myApp.callProcedure(invalidTypeJsonRpc)).toEqual(expectedTypeErrorOutput);
   })
 })

@@ -143,9 +143,8 @@ export interface RpcRouter {
 }
 
 // Main createRpc function
-export function createRpc(config: { monoschema: unknown }): RpcRouter {
-  // Config parameter is available for future use but not currently needed
-  void config;
+export function createRpc(config: { monoschema: { validate: <T extends MonoSchema>(schema: T) => (value: unknown) => { valid: boolean; errors: Array<{ path: string; message: string; expected: string; received: string; value: unknown }> } } }): RpcRouter {
+  const { monoschema } = config;
   return function <T extends Record<string, Procedure<unknown, unknown> | NamespaceWrapper<unknown>> | NamespaceWrapper<unknown>>(
     definition: T
   ): RpcApp<T> {
@@ -184,29 +183,27 @@ export function createRpc(config: { monoschema: unknown }): RpcRouter {
       return null;
     }
     
-    // Helper function to validate input against schema
+    // Helper function to validate input against schema using MonoSchema
     function validateInput(input: unknown, schema: MonoSchema): { valid: boolean; error?: string } {
-      if (typeof input !== 'object' || input === null) {
-        return { valid: false, error: 'Input must be an object' };
-      }
+      const validate = monoschema.validate(schema);
+      const result = validate(input);
       
-      // Handle object schema with $properties
-      if ('$properties' in schema && typeof schema.$properties === 'object' && schema.$properties !== null) {
-        const properties = schema.$properties as Record<string, unknown>;
-        for (const key of Object.keys(properties)) {
-          if (!(key in input)) {
-            return { valid: false, error: `Missing required parameter "${key}"` };
+      if (!result.valid && result.errors.length > 0) {
+        // Format error message to match expected test format
+        const firstError = result.errors[0];
+        if (firstError) {
+          const fieldName = firstError.path || 'unknown';
+          if (firstError.message.includes('Missing required property')) {
+            return { valid: false, error: `Invalid params(${fieldName}): Missing required property` };
+          } else if (firstError.message.includes('Expected type')) {
+            return { valid: false, error: `Invalid params(${fieldName}): ${firstError.message}` };
+          } else {
+            return { valid: false, error: `Invalid params(${fieldName}): ${firstError.message}` };
           }
         }
-        return { valid: true };
+        return { valid: false, error: 'Invalid params: Validation failed' };
       }
       
-      // Fallback validation - check if all required properties exist
-      for (const key of Object.keys(schema)) {
-        if (key !== '$type' && key !== '$properties' && !(key in input)) {
-          return { valid: false, error: `Missing required parameter "${key}"` };
-        }
-      }
       return { valid: true };
     }
     
@@ -264,7 +261,7 @@ export function createRpc(config: { monoschema: unknown }): RpcRouter {
               jsonrpc: '2.0',
               error: {
                 code: -32602,
-                message: `Invalid params: ${validation.error}`,
+                message: validation.error!,
               },
               id: jsonRpcRequest.id,
             };
@@ -284,7 +281,7 @@ export function createRpc(config: { monoschema: unknown }): RpcRouter {
               jsonrpc: '2.0',
               error: {
                 code: -32603,
-                message: error instanceof Error ? error.message : 'Internal error',
+                message: error instanceof Error ? `Internal error: ${error.message}` : 'Internal error',
               },
               id: jsonRpcRequest.id,
             };
