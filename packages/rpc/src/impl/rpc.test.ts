@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createRpc, procedure, namespace } from '../index';
+import { createRpc, procedure, namespace } from './rpc';
 import { configureMonoSchema } from '@voidhaus/monoschema';
 
 describe('RPC Tests', () => {

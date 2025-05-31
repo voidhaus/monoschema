@@ -1,4 +1,4 @@
-import { RouterReturn } from "@voidhaus/rpc";
+import { RpcApp } from "@voidhaus/rpc";
 import HyperExpress from "hyper-express";
 
 export type HyperExpressConfigOptions = {
@@ -12,8 +12,8 @@ export type HyperExpressRpcServer = {
   close: (callback?: () => void) => void;
 };
 
-export const createHyperExpressRpcServer = (
-  router: RouterReturn<unknown>,
+export const createHyperExpressRpcServer = <T>(
+  router: RpcApp<T>,
   opts: HyperExpressConfigOptions
 ) => {
   const server = new HyperExpress.Server();
@@ -23,7 +23,7 @@ export const createHyperExpressRpcServer = (
     let body;
     try {
       body = await req.json();
-    } catch (error) {
+    } catch {
       // JSON parse error
       return res.status(400).json({
         jsonrpc: "2.0",
@@ -60,7 +60,7 @@ export const createHyperExpressRpcServer = (
     try {
       const result = await router.callProcedure(body);
       return res.status(200).json(result);
-    } catch (error) {
+    } catch {
       // Internal server error in JSON-RPC format
       return res.status(500).json({
         jsonrpc: "2.0",
