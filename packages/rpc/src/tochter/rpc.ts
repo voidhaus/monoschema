@@ -132,7 +132,7 @@ type InferContractFromNamespace<T> = {
 // RPC App interface
 export interface RpcApp<T> {
   _definition: T;
-  callProcedure(request: JsonRpcRequest | string): JsonRpcResponse;
+  callProcedure(request: JsonRpcRequest): JsonRpcResponse;
 }
 
 // Router function type
@@ -212,10 +212,11 @@ export function createRpc(config: { monoschema: unknown }): RpcRouter {
     
     return {
       _definition: definition,
-      callProcedure(request: JsonRpcRequest | string): JsonRpcResponse {
+      callProcedure(request: JsonRpcRequest): JsonRpcResponse {
         try {
-          // Handle string requests (invalid JSON)
-          if (typeof request === 'string') {
+          // Handle string requests (invalid JSON) - cast to allow string for testing
+          const actualRequest = request as JsonRpcRequest | string;
+          if (typeof actualRequest === 'string') {
             return {
               jsonrpc: '2.0',
               error: {
@@ -227,7 +228,7 @@ export function createRpc(config: { monoschema: unknown }): RpcRouter {
           }
 
           // At this point, request is guaranteed to be JsonRpcRequest
-          const jsonRpcRequest = request as JsonRpcRequest;
+          const jsonRpcRequest = actualRequest as JsonRpcRequest;
 
           // Validate JSON-RPC format
           if (!jsonRpcRequest.method || jsonRpcRequest.params === undefined) {
@@ -289,13 +290,14 @@ export function createRpc(config: { monoschema: unknown }): RpcRouter {
             };
           }
         } catch {
+          const actualRequest = request as JsonRpcRequest | string;
           return {
             jsonrpc: '2.0',
             error: {
               code: -32603,
               message: 'Internal error',
             },
-            id: typeof request === 'string' ? null : request.id,
+            id: typeof actualRequest === 'string' ? null : actualRequest.id,
           };
         }
       },

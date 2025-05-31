@@ -476,6 +476,7 @@ describe('RPC Tests', () => {
       },
       id: null,
     }
+    // @ts-expect-error - Intentionally passing an invalid string body, should only accept an object
     expect(myApp.callProcedure(invalidJsonRpcBody)).toEqual(expectedBodyErrorOutput);
   })
 })
