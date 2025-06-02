@@ -2,12 +2,12 @@
 
 import GradientText from "./GradientText";
 
-export function Leftbar() {
+export function Leftbar({ pathname }: { pathname: string }) {
   const navigationItems = [
     {
       section: "Getting Started",
       items: [
-        { title: "Introduction", href: "/docs", active: true },
+        { title: "Introduction", href: "/docs" },
         { title: "Installation", href: "/docs/installation" },
         { title: "Quick Start", href: "/docs/quick-start" },
         { title: "Core Concepts", href: "/docs/concepts" },
@@ -94,18 +94,18 @@ export function Leftbar() {
                         href={item.href}
                         className={`
                           group flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                          ${item.active 
+                          ${item.href === pathname
                             ? 'bg-gradient-to-r from-[#00e5ff]/20 to-[#7C3AED]/20 text-white border border-[#00e5ff]/30' 
                             : 'text-gray-400 hover:text-white hover:bg-[#232336]/40'
                           }
                         `}
                       >
                         <div className={`w-1.5 h-1.5 rounded-full mr-3 transition-all duration-200 ${
-                          item.active 
+                          item.href === pathname 
                             ? 'bg-gradient-to-r from-[#00e5ff] to-[#7C3AED]' 
                             : 'bg-gray-600 group-hover:bg-gray-400'
                         }`} />
-                        <span className={item.active ? 'bg-gradient-to-r from-[#00e5ff] to-[#7C3AED] bg-clip-text text-transparent' : ''}>
+                        <span className={item.href === pathname ? 'bg-gradient-to-r from-[#00e5ff] to-[#7C3AED] bg-clip-text text-transparent' : ''}>
                           {item.title}
                         </span>
                       </a>
