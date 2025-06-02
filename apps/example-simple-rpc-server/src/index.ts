@@ -63,4 +63,6 @@ const hyperExpressApp = createHyperExpressRpcServer(appValidated, {
 })
 
 // Start the HyperExpress server on port 3000
-hyperExpressApp.listen(3000)
+hyperExpressApp.listen(3000, () => {
+  console.log("RPC server is running on http://localhost:3000/rpc");
+})
