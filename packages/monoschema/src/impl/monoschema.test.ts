@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema, Plugin } from "./monoschema";
+import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema, Plugin, MonoSchemaInstance } from "./monoschema";
 import { max, min } from "./constraints";
 
 describe('monoschema', () => {
@@ -755,5 +755,115 @@ describe('monoschema', () => {
       age: 30,
       isActive: true,
     }})
+  })
+
+  it('should be able to handle nested schemas', () => {
+    const propertySchema = {
+      $type: Object,
+      $properties: {
+        name: {
+          $type: String,
+          $description: "The name of the property.",
+        },
+        type: {
+          $type: String,
+          $description: "The type of the property (e.g., 'string', 'number', 'boolean').",
+        },
+        description: {
+          $type: String,
+          $description: "A brief description of the property.",
+          $optional: true,
+        },
+        required: {
+          $type: Boolean,
+          $description: "Whether the property is required.",
+          $optional: true,
+        },
+      },
+    } as const;
+    const BuildingBlockType = Object.assign(
+      () => ({
+        validate: (value: unknown, monoschemaInstance?: MonoSchemaInstance) => {
+          if (!monoschemaInstance) {
+            return { valid: false, errors: [{ message: "MonoSchemaInstance required", expected: "MonoSchemaInstance", received: "undefined", value }] };
+          }
+          const validate = monoschemaInstance.validate(propertySchema)
+          return validate(value)
+        },
+      }),
+      { tsType: null as unknown as InferTypeFromMonoSchema<typeof propertySchema> }
+    );// as unknown as (() => { validate: (value: unknown, monoSchemaInstance?: MonoSchemaInstance) => unknown }) & { tsType: InferTypeFromMonoSchema<typeof propertySchema> };
+    const cmsPlugin: Plugin = {
+      name: "CMSPlugin",
+      description: "A plugin for CMS",
+      version: "1.0.0",
+      types: [BuildingBlockType],
+    }
+    const monoSchema = configureMonoSchema({
+      plugins: [cmsPlugin],
+    })
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: {
+          $type: String,
+          $description: "The name of the building block.",
+        },
+        description: {
+          $type: String,
+          $description: "A brief description of the building block.",
+          $optional: true,
+        },
+        properties: {
+          $type: [BuildingBlockType],
+          $description: "The properties of the building block.",
+        },
+      },
+    } as const;
+    type BuildingBlockSchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const validData: BuildingBlockSchemaType = {
+      name: "My Building Block",
+      description: "A description of my building block.",
+      properties: [
+        {
+          name: "Property 1",
+          type: "string",
+          description: "A string property.",
+          required: true,
+        },
+        {
+          name: "Property 2",
+          type: "number",
+          description: "A number property.",
+          required: false,
+        },
+      ],
+    }
+    const invalidData: BuildingBlockSchemaType = {
+      name: "My Building Block",
+      description: "A description of my building block.",
+      properties: [
+        {
+          name: "Property 1",
+          type: "string",
+          description: "A string property.",
+          required: true,
+        },
+        {
+          name: "Property 2",
+          type: 123 as unknown as string, // Invalid type - should be string
+          description: "A number property.",
+          required: false,
+        },
+      ],
+    }
+    // Validate the data against the schema
+    const validate = monoSchema.validate(basicSchema)
+    const isValid = validate(validData)
+    const isInvalid = validate(invalidData)
+    // Check the validation results
+    expect(isValid).toStrictEqual({ valid: true, errors: [], data: validData })
+    expect(isInvalid.valid).toBe(false)
   })
 })

@@ -10,7 +10,8 @@ export type {
   Plugin,
   ConfigureMonoSchemaOptions,
   ValidationError,
-  ValidationResult
+  ValidationResult,
+  MonoSchemaInstance
 } from "./types";
 
 // Re-export property path utilities

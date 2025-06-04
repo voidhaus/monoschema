@@ -1,6 +1,11 @@
 // Schema type definitions for MonoSchema
 import type { Constraint } from "./constraints";
 
+// Forward declaration for MonoSchemaInstance
+export type MonoSchemaInstance = {
+  validate: <T extends MonoSchema>(schema: T) => (value: unknown) => ValidationResult<unknown>;
+};
+
 // Schema type definitions
 type MonoSchemaType =
   | StringConstructor
@@ -9,7 +14,7 @@ type MonoSchemaType =
   | DateConstructor
   | ObjectConstructor
   | ArrayConstructor
-  | ((...args: unknown[]) => { validate: (value: unknown) => unknown });
+  | ((...args: unknown[]) => { validate: (value: unknown, monoSchemaInstance?: MonoSchemaInstance) => unknown });
 
 export type MonoSchemaProperty = {
   $type: MonoSchemaType | readonly MonoSchemaType[];

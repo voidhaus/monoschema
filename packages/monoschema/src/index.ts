@@ -7,4 +7,5 @@ export {
   type Plugin,
   type MonoSchema,
   type MonoSchemaProperty,
+  type MonoSchemaInstance,
 } from "./impl/monoschema";
