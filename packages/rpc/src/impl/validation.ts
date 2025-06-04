@@ -1,5 +1,5 @@
 import type { MonoSchema } from '@voidhaus/monoschema';
-import type { RpcConfig, ValidationResult } from './types';
+import type { RpcConfig, ValidationResult } from '@voidhaus/rpc-types';
 
 /**
  * Validates input parameters against a MonoSchema using the provided monoschema validator.

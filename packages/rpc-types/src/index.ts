@@ -82,7 +82,12 @@ export interface RpcConfig {
 }
 
 // Type inference utilities
-export type InferRpcContract<T> = T extends RpcApp<infer U> ? InferContractFromNamespace<U> : never;
+
+// Improved: Accepts both RpcApp<T> and NamespaceWrapper<T> directly for better type inference in monorepo usage
+export type InferRpcContract<T> =
+  T extends RpcApp<infer U> ? InferContractFromNamespace<U> :
+  T extends NamespaceWrapper<infer U> ? InferContractFromNamespace<U> :
+  never;
 
 type InferContractFromNamespace<T> = {
   [K in keyof T]: T[K] extends Procedure<infer I, infer O>

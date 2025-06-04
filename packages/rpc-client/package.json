@@ -1,0 +1,31 @@
+{
+  "name": "@voidhaus/rpc-client",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@voidhaus/eslint-config": "workspace:*",
+    "@voidhaus/rpc": "workspace:*",
+    "@voidhaus/typescript-config": "workspace:*",
+    "@turbo/gen": "^2.5.0",
+    "@types/node": "^22.15.3",
+    "eslint": "^9.26.0",
+    "prettier": "^3.5.3",
+    "typescript": "5.8.2",
+    "vitest": "^3.1.3"
+  },
+  "dependencies": {
+    "@voidhaus/monoschema": "workspace:*",
+    "@voidhaus/rpc-types": "workspace:*"
+  }
+}
