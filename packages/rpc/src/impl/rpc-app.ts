@@ -1,4 +1,4 @@
-import type { JsonRpcRequest, JsonRpcResponse, RpcApp, RpcConfig } from './types';
+import type { JsonRpcRequest, JsonRpcResponse, RpcApp, RpcConfig } from '@voidhaus/rpc-types';
 import { validateInput } from './validation';
 import { findProcedure, executeProcedure } from './procedure-resolver';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@voidhaus/rpc",
+  "name": "@voidhaus/rpc-types",
   "version": "0.0.0",
   "private": true,
   "main": "src/index.ts",
@@ -10,7 +10,6 @@
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",
-    "test": "vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {
@@ -24,7 +23,6 @@
     "vitest": "^3.1.3"
   },
   "dependencies": {
-    "@voidhaus/monoschema": "workspace:*",
-    "@voidhaus/rpc-types": "workspace:*"
+    "@voidhaus/monoschema": "workspace:*"
   }
 }

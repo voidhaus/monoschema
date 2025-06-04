@@ -1,1 +1,2 @@
-export * from './impl/rpc';
+export * from '@voidhaus/rpc-types'
+export * from './impl/rpc'

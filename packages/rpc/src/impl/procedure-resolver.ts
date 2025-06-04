@@ -1,4 +1,4 @@
-import type { Procedure, NamespaceWrapper } from './types';
+import type { Procedure, NamespaceWrapper } from '@voidhaus/rpc-types';
 
 /**
  * Finds a procedure by method path within a nested namespace structure.

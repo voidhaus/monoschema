@@ -1,19 +1,3 @@
-// Re-export all types
-export type {
-  JsonRpcRequest,
-  JsonRpcResponse,
-  InputWrapper,
-  OutputWrapper,
-  ResolverWrapper,
-  NamespaceWrapper,
-  Procedure,
-  RpcApp,
-  RpcRouter,
-  RpcConfig,
-  InferRpcContract,
-  ValidationResult
-} from './types';
-
 // Re-export builder functions
 export {
   input,

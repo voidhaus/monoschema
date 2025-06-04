@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { configureMonoSchema, InferTypeFromMonoSchema } from '@voidhaus/monoschema';
-import { createRpc, namespace, procedure, input, output, resolver, InferRpcContract } from './rpc';
+import { createRpc, namespace, procedure, input, output, resolver } from './rpc';
+import { InferRpcContract } from '@voidhaus/rpc-types';
 
 describe('RPC Tests', () => {
   it('should process basic request', () => {

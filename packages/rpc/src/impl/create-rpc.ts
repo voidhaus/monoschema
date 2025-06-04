@@ -1,4 +1,4 @@
-import type { RpcRouter, RpcConfig, Procedure, NamespaceWrapper } from './types';
+import type { RpcRouter, RpcConfig, Procedure, NamespaceWrapper } from '@voidhaus/rpc-types';
 import { createRpcApp } from './rpc-app';
 
 /**

@@ -5,7 +5,7 @@ import type {
   ResolverWrapper,
   NamespaceWrapper,
   Procedure
-} from './types';
+} from '@voidhaus/rpc-types';
 
 /**
  * Creates an input wrapper for a MonoSchema.
