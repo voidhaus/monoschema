@@ -89,16 +89,18 @@ export type InferRpcContract<T> =
   T extends NamespaceWrapper<infer U> ? InferContractFromNamespace<U> :
   never;
 
-type InferContractFromNamespace<T> = {
-  [K in keyof T]: T[K] extends Procedure<infer I, infer O>
-    ? {
-        input: I;
-        output: O;
-      }
-    : T[K] extends NamespaceWrapper<infer U>
-    ? InferContractFromNamespace<U>
-    : never;
-};
+type InferContractFromNamespace<T> = T extends NamespaceWrapper<infer U>
+  ? InferContractFromNamespace<U>
+  : {
+      [K in keyof T]: T[K] extends Procedure<infer I, infer O>
+        ? {
+            input: I;
+            output: O;
+          }
+        : T[K] extends NamespaceWrapper<infer U>
+        ? InferContractFromNamespace<U>
+        : never;
+    };
 
 // Validation result types
 export interface ValidationResult {

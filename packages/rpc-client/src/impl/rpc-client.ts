@@ -1,17 +1,20 @@
+import type { InferRpcContract } from "@voidhaus/rpc-types";
+
 let requestId = 1;
 
 export function resetRequestId() {
   requestId = 1;
 }
 
-// Recursively map contract types to client types
-export type RpcClient<T> = {
+// Helper type to convert contract to client
+type ContractToClient<T> = {
   [K in keyof T]: T[K] extends { input: infer I; output: infer O }
     ? (params: I) => Promise<O>
-    : T[K] extends Record<string, unknown>
-      ? RpcClient<T[K]>
-      : never;
+    : ContractToClient<T[K]>
 };
+
+// Recursively map contract types to client types
+export type RpcClient<T> = ContractToClient<InferRpcContract<T>>;
 
 type CreateClientOptions = {
   baseUrl: string;
