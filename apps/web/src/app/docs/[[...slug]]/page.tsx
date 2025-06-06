@@ -1,6 +1,17 @@
 import GradientText from "@/components/GradientText";
+// import { client } from "@/providers/rpc";
+// import { headers } from "next/headers";
 
-export default function DocsPage() {
+export default async function DocsPage() {
+  // Temporary commented out code for fetching content
+  // const headersList = await headers();
+  // const contentPath = headersList.get('x-url') || "/";
+  // const _content = await client.content.getContentByKey({
+  //   key: contentPath,
+  //   resolveChildren: true,
+  // })
+  // TODO: Translate returned content into a React component tree
+
   return (
     <div className="relative min-h-screen text-white">
       {/* Background similar to other pages */}

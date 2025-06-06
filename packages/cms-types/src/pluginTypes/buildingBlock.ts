@@ -1,9 +1,14 @@
 import { InferTypeFromMonoSchema, MonoSchemaInstance } from "@voidhaus/monoschema";
-import { PropertyObject } from "./property";
+import { PropertyObject } from "./property"
+import { ContentKeyObject } from "./contentKey";
 
 export const BuildingBlockSchema = {
   $type: Object,
   $properties: {
+    key: {
+      $type: ContentKeyObject,
+      $description: "A unique identifier for the building block.",
+    },
     name: {
       $type: String,
       $description: "The name of the building block.",

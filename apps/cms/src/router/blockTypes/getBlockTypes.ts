@@ -1,28 +1,17 @@
+import {
+  GetBlockTypesInput,
+  getBlockTypesInputSchema,
+  GetBlockTypesOutput,
+  getBlockTypesOutputSchema,
+} from "@voidhaus/cms-types";
 import { input, output, procedure, resolver } from "@voidhaus/rpc";
-import { InferTypeFromMonoSchema } from "@voidhaus/monoschema";
-import { BuildingBlockObject } from "@voidhaus/cms-types";
-
-export const getBlockTypesInputSchema = {
-  $type: Object,
-} as const;
-
-export type GetBlockTypesInput = InferTypeFromMonoSchema<
-  typeof getBlockTypesInputSchema
->;
-
-export const getBlockTypesOutputSchema = {
-  $type: [BuildingBlockObject],
-} as const;
-
-export type GetBlockTypesOutput = InferTypeFromMonoSchema<
-  typeof getBlockTypesOutputSchema
->;
 
 const getBlockTypesResolver = resolver<GetBlockTypesInput, GetBlockTypesOutput>(
   () => {
     return [
       {
         name: "Text Block",
+        key: "text-block",
         description: "A simple text block",
         properties: [
           {
@@ -34,6 +23,7 @@ const getBlockTypesResolver = resolver<GetBlockTypesInput, GetBlockTypesOutput>(
       },
       {
         name: "Image Block",
+        key: "image-block",
         description: "A block for displaying images",
         properties: [
           {
@@ -48,12 +38,12 @@ const getBlockTypesResolver = resolver<GetBlockTypesInput, GetBlockTypesOutput>(
           },
         ],
       },
-    ]
+    ];
   }
 );
 
 export const getBlockTypes = procedure(
   input(getBlockTypesInputSchema),
   output(getBlockTypesOutputSchema),
-  getBlockTypesResolver,
+  getBlockTypesResolver
 );

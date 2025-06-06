@@ -112,6 +112,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@voidhaus/cms-types':
+        specifier: workspace:*
+        version: link:../../packages/cms-types
+      '@voidhaus/rpc-client':
+        specifier: workspace:*
+        version: link:../../packages/rpc-client
       next:
         specifier: 15.3.2
         version: 15.3.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)

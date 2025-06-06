@@ -1,7 +1,5 @@
 export { CmsPlugin } from "./plugin";
-export { PropertyObject, type Property, PropertySchema } from "./property";
-export {
-  BuildingBlockObject,
-  type BuildingBlock,
-  BuildingBlockSchema,
-} from "./buildingBlock";
+export * from "./pluginTypes";
+export * from "./blockTypes";
+export * from "./content";
+export * from "./app";
