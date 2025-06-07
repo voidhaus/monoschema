@@ -7,13 +7,13 @@ export class MonoSchemaMongoClient {
     private readonly mongoClient: MongoClient,
   ) {}
 
-  public async query<T extends InferTypeFromMonoSchema<MonoSchema>>(
+  public async find<T extends InferTypeFromMonoSchema<MonoSchema>>(
     collectionName: string,
     query: ReturnType<typeof monoSchemaQuery<T>>,
     options?: FindOptions & Abortable, 
   ): Promise<WithId<T & Document>[]> {
     if (!this.mongoClient) {
-      throw new Error("MongoDB client not initialized. Call initializeMongoClient first.")
+      throw new Error("MongoDB client not initialized.")
     }
     const collection = this.mongoClient.db().collection<T & Document>(collectionName)
     const results = await collection.find(query.toMongo(), options).toArray()

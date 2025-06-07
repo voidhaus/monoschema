@@ -14,7 +14,7 @@ const getBlockTypesResolver = resolver<GetBlockTypesInput, GetBlockTypesOutput>(
     const limit = pageSize || 10; // Default to 10 if pageSize is not provided
     const skip = ((page || 1) - 1) * limit; // Calculate the number of documents to skip
 
-    const blocksData = await Client.query<BlockTypeData>(
+    const blocksData = await Client.find<BlockTypeData>(
       "blockTypes",
       query<BlockTypeData>(),
       {
