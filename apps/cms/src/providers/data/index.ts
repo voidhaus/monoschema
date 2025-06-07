@@ -15,10 +15,15 @@ export const initializeMongoClient = async (
   return client;
 };
 
-export const Client: MonoSchemaMongoClient =
-  client ??
-  (() => {
-    throw new Error(
-      "MongoDB client not initialized. Call initializeMongoClient first."
-    );
-  })();
+const wrapper = {
+  get Client() {
+    if (!client) {
+      throw new Error(
+        "MongoDB client not initialized. Call initializeMongoClient first."
+      );
+    }
+    return client;
+  }
+}
+
+export default wrapper;
