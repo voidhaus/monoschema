@@ -1,12 +1,16 @@
 // Main configuration function for MonoSchema
 import type { InferTypeFromMonoSchema } from "./type-inference";
-import type { MonoSchema, MonoSchemaProperty, ConfigureMonoSchemaOptions, ValidationResult, MonoSchemaInstance } from "./types";
+import { type MonoSchema, type MonoSchemaProperty, type ConfigureMonoSchemaOptions, type ValidationResult, type MonoSchemaInstance, AnyPlugin } from "./types";
 import { validateValue, runPrevalidation } from "./validation";
 import { getTypeName, getValueAtPropertyPath, getSchemaAtPropertyPath, getValueTypeName } from "./validation-utils";
 
 // Main configuration function
 export function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
   const plugins = options.plugins || [];
+  // Add the default AnyPlugin if not already included
+  if (!plugins.some(plugin => plugin.name === AnyPlugin.name)) {
+    plugins.push(AnyPlugin)
+  }
   
   const monoSchemaInstance: MonoSchemaInstance = {
     validate: <T extends MonoSchema>(schema: T) => 

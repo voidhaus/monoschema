@@ -13,6 +13,7 @@ export type {
   ValidationResult,
   MonoSchemaInstance
 } from "./types";
+export { Any } from "./types";
 
 // Re-export property path utilities
 export type {

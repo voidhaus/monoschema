@@ -65,3 +65,22 @@ export type ValidationResult<T = unknown> = {
   errors: ValidationError[];
   data?: T;
 };
+
+export const Any = Object.assign(
+  () => {
+    return {
+      validate: () => true,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tsType: null as unknown as any,
+    }
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  { tsType: null as unknown as any }
+);
+
+export const AnyPlugin: Plugin = {
+  name: "AnyPlugin",
+  description: "A plugin that allows any type of value",
+  version: "1.0.0",
+  types: [Any],
+}
