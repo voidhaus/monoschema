@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema, Plugin, MonoSchemaInstance } from "./monoschema";
+import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema, Plugin, MonoSchemaInstance, Any } from "./monoschema";
 import { max, min } from "./constraints";
 
 describe('monoschema', () => {
@@ -984,6 +984,156 @@ describe('monoschema', () => {
         hobbies: ["reading", "gaming"],
         extraField: "This should not cause an error or be stripped", // Extra field should remain
       },
+    })
+  })
+
+  it('should strip unknown properties', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: { $type: Number, $optional: true },
+        isActive: { $type: Boolean },
+        hobbies: { $type: [String] },
+        address: {
+          $type: Object,
+          $properties: {
+            street: { $type: String },
+            city: { $type: String },
+            zipCode: { $type: Number, $optional: true },
+          },
+        },
+      },
+    } as const;
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const almostValidData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      isActive: true,
+      hobbies: ["reading", "gaming"],
+      address: {
+        street: "123 Main St",
+        city: "New York",
+        zipCode: 10001,
+        // @ts-expect-error - should error or strip unknown property
+        extraField: "This should not be here", // Extra field not in schema
+      },
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema({
+      stripUnknownProperties: true, // Enable stripping of unknown properties
+    }).validate(basicSchema)
+    const isAlmostValid = validate(almostValidData)
+    // Check the validation results
+    expect(isAlmostValid).toStrictEqual({
+      valid: true,
+      errors: [],
+      data: {
+        name: "John Doe",
+        age: 30,
+        isActive: true,
+        hobbies: ["reading", "gaming"],
+        address: {
+          street: "123 Main St",
+          city: "New York",
+          zipCode: 10001,
+          // extraField should be stripped out
+        },
+      },
+    })
+  })
+
+  it('should error on nested unknown properties', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: { $type: Number, $optional: true },
+        isActive: { $type: Boolean },
+        hobbies: { $type: [String] },
+        address: {
+          $type: Object,
+          $properties: {
+            street: { $type: String },
+            city: { $type: String },
+            zipCode: { $type: Number, $optional: true },
+          },
+        },
+      },
+    } as const;
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const almostValidData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      isActive: true,
+      hobbies: ["reading", "gaming"],
+      address: {
+        street: "123 Main St",
+        city: "New York",
+        zipCode: 10001,
+        // @ts-expect-error - should error or strip unknown property
+        extraField: "This should cause an error", // Extra field not in schema
+      },
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema({
+      errorUnknownProperties: true, // Enable erroring on unknown properties
+    }).validate(basicSchema)
+    const isAlmostValid = validate(almostValidData)
+    // Check the validation results
+    expect(isAlmostValid).toStrictEqual({
+      valid: false,
+      errors: [
+        {
+          path: 'address.extraField',
+          message: 'Unexpected property found: extraField',
+          expected: 'undefined',
+          received: 'String',
+          value: "This should cause an error",
+        }
+      ],
+      data: undefined,
+    })
+    expect(isAlmostValid.valid).toBe(false)
+  })
+
+  it('should not strip or error on unknown properties for nested any type', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: { $type: Number, $optional: true },
+        isActive: { $type: Boolean },
+        hobbies: { $type: [String] },
+        address: {
+          $type: Any,
+        },
+      },
+    } as const;
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const validData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      isActive: true,
+      hobbies: ["reading", "gaming"],
+      address: {
+        street: "123 Main St",
+        city: "New York",
+        zipCode: 10001,
+        extraField: "This should not cause an error or be stripped", // Extra field not in schema
+      },
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema().validate(basicSchema)
+    const isAlmostValid = validate(validData)
+    // Check the validation results
+    expect(isAlmostValid).toStrictEqual({
+      valid: true,
+      errors: [],
+      data: validData, // Extra field should remain
     })
   })
 })
