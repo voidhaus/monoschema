@@ -14,7 +14,7 @@ const getBlockTypesResolver = resolver<GetBlockTypesInput, GetBlockTypesOutput>(
     const limit = pageSize || 10; // Default to 10 if pageSize is not provided
     const skip = ((page || 1) - 1) * limit; // Calculate the number of documents to skip
 
-    const blocksData = await Client.find<BlockTypeData>(
+    return await Client.find<BlockTypeData>(
       "blockTypes",
       query<BlockTypeData>(),
       {
@@ -22,16 +22,6 @@ const getBlockTypesResolver = resolver<GetBlockTypesInput, GetBlockTypesOutput>(
         skip,
       }
     )
-
-    // TODO: Find a way of stripping addition fields from the output data
-    // without having to do this manually; but this should also work for
-    // a generic Any type which allows us to return any data structure
-    return blocksData.map((block) => ({
-      key: block.key,
-      name: block.name,
-      description: block.description,
-      properties: block.properties,
-    }))
   }
 );
 

@@ -18,7 +18,8 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["npm_lifecycle_event"]
     }
   }
 }
