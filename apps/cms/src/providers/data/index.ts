@@ -1,6 +1,6 @@
-import { Abortable, FindOptions, MongoClient, WithId } from "mongodb"
+import { Abortable, FindOptions, MongoClient, WithId, Document } from "mongodb"
 import { query as monoSchemaQuery } from "@voidhaus/monoschema-mongo"
-import { InferTypeFromMonoSchema } from "@voidhaus/monoschema"
+import { InferTypeFromMonoSchema, MonoSchema } from "@voidhaus/monoschema"
 
 let mongoClient: MongoClient | null = null
 
@@ -13,22 +13,15 @@ export const initializeMongoClient = async (uri: string) => {
   return mongoClient
 }
 
-export const DocumentSchema = {
-  $type: Object,
-  $properties: {
-    _id: { $type: String, $optional: true },
-  },
-} as const
-
-export const query = async <T extends typeof DocumentSchema>(
+export const query = async <T extends InferTypeFromMonoSchema<MonoSchema>>(
   collectionName: string,
   query: ReturnType<typeof monoSchemaQuery<T>>,
   options?: FindOptions & Abortable, 
-): Promise<WithId<InferTypeFromMonoSchema<T>>[]> => {
+): Promise<WithId<T & Document>[]> => {
   if (!mongoClient) {
     throw new Error("MongoDB client not initialized. Call initializeMongoClient first.")
   }
-  const collection = mongoClient.db().collection<InferTypeFromMonoSchema<T>>(collectionName)
-  const results = await collection.find(query, options).toArray()
+  const collection = mongoClient.db().collection<T & Document>(collectionName)
+  const results = await collection.find(query.toMongo(), options).toArray()
   return results
 }
