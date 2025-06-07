@@ -5,40 +5,25 @@ import {
   getBlockTypesOutputSchema,
 } from "@voidhaus/cms-types";
 import { input, output, procedure, resolver } from "@voidhaus/rpc";
+import { data } from "../../providers";
+import { query } from "@voidhaus/monoschema-mongo";
+import { BlockTypeData } from "../../providers/data/types";
 
 const getBlockTypesResolver = resolver<GetBlockTypesInput, GetBlockTypesOutput>(
-  () => {
-    return [
+  ({ page, pageSize }) => {
+    const limit = pageSize || 10; // Default to 10 if pageSize is not provided
+    const skip = ((page || 1) - 1) * limit; // Calculate the number of documents to skip
+
+    data.query(
+      "blockTypes",
+      query<BlockTypeData>(),
       {
-        name: "Text Block",
-        key: "text-block",
-        description: "A simple text block",
-        properties: [
-          {
-            name: "text",
-            type: "string",
-            description: "The text content of the block",
-          },
-        ],
-      },
-      {
-        name: "Image Block",
-        key: "image-block",
-        description: "A block for displaying images",
-        properties: [
-          {
-            name: "imageUrl",
-            type: "string",
-            description: "The URL of the image to display",
-          },
-          {
-            name: "altText",
-            type: "string",
-            description: "Alternative text for the image",
-          },
-        ],
-      },
-    ];
+        limit,
+        skip,
+      }
+    )
+
+    return []
   }
 );
 

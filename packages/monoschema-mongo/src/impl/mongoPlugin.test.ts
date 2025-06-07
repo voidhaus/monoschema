@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { mongoTypesPlugin, mongoTransformersPlugin, ObjectID } from './mongoPlugin'
+import { MongoTypesPlugin, MongoTransformersPlugin, ObjectID } from './mongoPlugin'
 import { ObjectId } from 'mongodb'
 import { configureMonoSchema, InferTypeFromMonoSchema } from '@voidhaus/monoschema'
 
 describe('mongoTypesPlugin', () => {
   it('should validate ObjectId correctly in a schema', () => {
-    const monoSchema = configureMonoSchema({ plugins: [mongoTypesPlugin] })
+    const monoSchema = configureMonoSchema({ plugins: [MongoTypesPlugin] })
     const schema = {
       $type: Object,
       $properties: {
@@ -26,7 +26,7 @@ describe('mongoTypesPlugin', () => {
 
 describe('mongoTransformersPlugin', () => {
   it('should prevalidate and transform string to ObjectId', () => {
-    const monoSchema = configureMonoSchema({ plugins: [mongoTransformersPlugin, mongoTypesPlugin] })
+    const monoSchema = configureMonoSchema({ plugins: [MongoTransformersPlugin, MongoTypesPlugin] })
     const schema = {
       $type: Object,
       $properties: {
@@ -44,7 +44,7 @@ describe('mongoTransformersPlugin', () => {
   })
 
   it('should fail on invalid ObjectId string', () => {
-    const monoSchema = configureMonoSchema({ plugins: [mongoTypesPlugin, mongoTransformersPlugin] })
+    const monoSchema = configureMonoSchema({ plugins: [MongoTypesPlugin, MongoTransformersPlugin] })
     const schema = {
       $type: Object,
       $properties: {
@@ -60,7 +60,7 @@ describe('mongoTransformersPlugin', () => {
   })
 
   it('should not transform if not a string', () => {
-    const monoSchema = configureMonoSchema({ plugins: [mongoTypesPlugin, mongoTransformersPlugin] })
+    const monoSchema = configureMonoSchema({ plugins: [MongoTypesPlugin, MongoTransformersPlugin] })
     const schema = {
       $type: Object,
       $properties: {

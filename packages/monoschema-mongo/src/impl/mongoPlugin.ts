@@ -27,13 +27,13 @@ export const ObjectID = Object.assign(
   { tsType: null as unknown as ObjectId }
 );
 
-export const mongoTypesPlugin: Plugin = {
+export const MongoTypesPlugin: Plugin = {
   name: "MongoTypesPlugin",
   description: "Provides MongoDB types for Monoschema.",
   types: [ObjectID],
 }
 
-export const mongoTransformersPlugin: Plugin = {
+export const MongoTransformersPlugin: Plugin = {
   name: "MongoTransformersPlugin",
   description: "Provides MongoDB transformers for Monoschema.",
   types: [],
@@ -43,7 +43,7 @@ export const mongoTransformersPlugin: Plugin = {
       if (schema.$type === ObjectID && typeof value === 'string') {
         try {
           return new ObjectId(value);
-        } catch (error) {
+        } catch {
           throw new Error(`${path}: Invalid ObjectId: ${value}`);
         }
       }

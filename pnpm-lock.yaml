@@ -26,12 +26,18 @@ importers:
       '@voidhaus/monoschema':
         specifier: workspace:*
         version: link:../../packages/monoschema
+      '@voidhaus/monoschema-mongo':
+        specifier: workspace:*
+        version: link:../../packages/monoschema-mongo
       '@voidhaus/rpc':
         specifier: workspace:*
         version: link:../../packages/rpc
       '@voidhaus/rpc-hyper-express':
         specifier: workspace:*
         version: link:../../packages/rpc-hyper-express
+      mongodb:
+        specifier: ^6.16.0
+        version: 6.16.0(socks@2.8.4)
     devDependencies:
       '@turbo/gen':
         specifier: ^2.5.0
