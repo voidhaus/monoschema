@@ -576,4 +576,167 @@ describe('RPC Tests', () => {
     }
     expect(myApp.callProcedure(invalidTypeJsonRpc)).toEqual(expectedTypeErrorOutput);
   })
+
+  it('should support asynchronous procedures', async () => {
+    const router = createRpc({
+      monoschema: configureMonoSchema(),
+    })
+    const myApp = router(
+      namespace({
+        asyncHello: procedure(
+          input({
+            $type: Object,
+            $properties: {
+              name: {
+                $type: String,
+              },
+            },
+          } as const),
+          output({
+            $type: Object,
+            $properties: {
+              greeting: {
+                $type: String,
+              },
+            },
+          } as const),
+          resolver(async ({ name }) => {
+            // Simulate an asynchronous operation
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve({
+                  greeting: `Hello, ${name}!`,
+                });
+              }, 100);
+            });
+          }
+        )
+        )
+      }),
+    )
+    // Type inference for the application type
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    type MyAppType = InferRpcContract<typeof myApp>;
+    const jsonRpc = {
+      jsonrpc: '2.0',
+      method: 'asyncHello',
+      params: {
+        name: 'World',
+      },
+      id: 1,
+    }
+    const expectedOutput = {
+      jsonrpc: '2.0',
+      result: {
+        greeting: 'Hello, World!',
+      },
+      error: null,
+      id: 1,
+    }
+    const result = await myApp.callProcedure(jsonRpc);
+    expect(result).toEqual(expectedOutput);
+  })
+
+  it('should support mixed sync and async procedures in the same namespace', async () => {
+    const router = createRpc({
+      monoschema: configureMonoSchema(),
+    })
+    const myApp = router(
+      namespace({
+        syncHello: procedure(
+          input({
+            $type: Object,
+            $properties: {
+              name: {
+                $type: String,
+              },
+            },
+          } as const),
+          output({
+            $type: Object,
+            $properties: {
+              greeting: {
+                $type: String,
+              },
+            },
+          } as const),
+          resolver(({ name }) => {
+            return {
+              greeting: `Sync Hello, ${name}!`,
+            };
+          })
+        ),
+        asyncHello: procedure(
+          input({
+            $type: Object,
+            $properties: {
+              name: {
+                $type: String,
+              },
+            },
+          } as const),
+          output({
+            $type: Object,
+            $properties: {
+              greeting: {
+                $type: String,
+              },
+            },
+          } as const),
+          resolver(async ({ name }) => {
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve({
+                  greeting: `Async Hello, ${name}!`,
+                });
+              }, 50);
+            });
+          })
+        )
+      }),
+    )
+    
+    // Test sync procedure
+    const syncJsonRpc = {
+      jsonrpc: '2.0',
+      method: 'syncHello',
+      params: {
+        name: 'World',
+      },
+      id: 1,
+    }
+    const expectedSyncOutput = {
+      jsonrpc: '2.0',
+      result: {
+        greeting: 'Sync Hello, World!',
+      },
+      error: null,
+      id: 1,
+    }
+    
+    // Test async procedure
+    const asyncJsonRpc = {
+      jsonrpc: '2.0',
+      method: 'asyncHello',
+      params: {
+        name: 'World',
+      },
+      id: 2,
+    }
+    const expectedAsyncOutput = {
+      jsonrpc: '2.0',
+      result: {
+        greeting: 'Async Hello, World!',
+      },
+      error: null,
+      id: 2,
+    }
+    
+    // Both should work, but async requires await
+    const syncResult = myApp.callProcedure(syncJsonRpc);
+    const asyncResult = await myApp.callProcedure(asyncJsonRpc);
+    
+    expect(syncResult).toEqual(expectedSyncOutput);
+    expect(asyncResult).toEqual(expectedAsyncOutput);
+  })
 })

@@ -13,7 +13,7 @@ export function createRpcApp<T>(
 ): RpcApp<T> {
   return {
     _definition: definition,
-    callProcedure(request: JsonRpcRequest): JsonRpcResponse {
+    callProcedure(request: JsonRpcRequest): JsonRpcResponse | Promise<JsonRpcResponse> {
       try {
         // Handle string requests (invalid JSON) - cast to allow string for testing
         const actualRequest = request as JsonRpcRequest | string;
@@ -63,6 +63,21 @@ export function createRpcApp<T>(
         // Execute the resolver
         const execution = executeProcedure(procedure, jsonRpcRequest.params);
         
+        // Check if execution returns a Promise
+        if (execution instanceof Promise) {
+          return execution.then((result) => {
+            if (!result.success) {
+              return createErrorResponse(
+                -32603,
+                result.error,
+                jsonRpcRequest.id
+              );
+            }
+            return createSuccessResponse(result.result, jsonRpcRequest.id);
+          });
+        }
+        
+        // Handle synchronous execution
         if (!execution.success) {
           return createErrorResponse(
             -32603,

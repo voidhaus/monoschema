@@ -43,13 +43,27 @@ export function findProcedure(
 /**
  * Executes a procedure with the given input parameters.
  * Handles errors and returns appropriate JSON-RPC response format.
+ * Supports both synchronous and asynchronous resolvers.
  */
 export function executeProcedure(
   procedure: Procedure<unknown, unknown>,
   params: unknown
-): { success: true; result: unknown } | { success: false; error: string } {
+): { success: true; result: unknown } | { success: false; error: string } | Promise<{ success: true; result: unknown } | { success: false; error: string }> {
   try {
     const result = procedure._resolver(params);
+    
+    // Check if result is a Promise
+    if (result instanceof Promise) {
+      return result.then(
+        (resolvedResult) => ({ success: true as const, result: resolvedResult }),
+        (error) => {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+          return { success: false as const, error: `Internal error: ${errorMessage}` };
+        }
+      );
+    }
+    
+    // Synchronous result
     return { success: true, result };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

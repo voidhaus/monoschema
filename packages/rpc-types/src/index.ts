@@ -30,7 +30,7 @@ export interface OutputWrapper<T extends MonoSchema> {
 }
 
 export interface ResolverWrapper<I, O> {
-  _resolver: (input: I) => O;
+  _resolver: (input: I) => O | Promise<O>;
   _tag: 'resolver';
 }
 
@@ -42,14 +42,14 @@ export interface NamespaceWrapper<T> {
 export interface Procedure<I, O> {
   _inputSchema: MonoSchema;
   _outputSchema: MonoSchema;
-  _resolver: (input: I) => O;
+  _resolver: (input: I) => O | Promise<O>;
   _tag: 'procedure';
 }
 
 // RPC App interface
 export interface RpcApp<T> {
   _definition: T;
-  callProcedure(request: JsonRpcRequest): JsonRpcResponse;
+  callProcedure(request: JsonRpcRequest): JsonRpcResponse | Promise<JsonRpcResponse>;
 }
 
 // Router function type with overloads for type checking and inference
