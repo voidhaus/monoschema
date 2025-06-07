@@ -50,6 +50,8 @@ export type Plugin = {
 
 export type ConfigureMonoSchemaOptions = {
   plugins?: Plugin[];
+  stripUnknownProperties?: boolean;
+  errorUnknownProperties?: boolean;
 };
 
 export type ValidationError = {

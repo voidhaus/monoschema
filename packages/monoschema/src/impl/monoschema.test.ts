@@ -866,4 +866,124 @@ describe('monoschema', () => {
     expect(isValid).toStrictEqual({ valid: true, errors: [], data: validData })
     expect(isInvalid.valid).toBe(false)
   })
+
+  it('should strip unknown properties when option is set', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: { $type: Number, $optional: true },
+        isActive: { $type: Boolean },
+        hobbies: { $type: [String] },
+      },
+    } as const;
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const almostValidData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      isActive: true,
+      hobbies: ["reading", "gaming"],
+      // @ts-expect-error - should error: extraField is not part of the schema
+      extraField: "This should be stripped", // Extra field not in schema
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema({
+      stripUnknownProperties: true, // Enable stripping of unknown properties
+    }).validate(basicSchema)
+    const isAlmostValid = validate(almostValidData)
+    // Check the validation results
+    expect(isAlmostValid).toStrictEqual({
+      valid: true,
+      errors: [],
+      data: {
+        name: "John Doe",
+        age: 30,
+        isActive: true,
+        hobbies: ["reading", "gaming"],
+        // extraField should be stripped out
+      },
+    })
+  })
+
+  it('should error on unknown properties when option is set', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: { $type: Number, $optional: true },
+        isActive: { $type: Boolean },
+        hobbies: { $type: [String] },
+      },
+    } as const;
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const almostValidData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      isActive: true,
+      hobbies: ["reading", "gaming"],
+      // @ts-expect-error - should error: extraField is not part of the schema
+      extraField: "This should cause an error", // Extra field not in schema
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema({
+      errorUnknownProperties: true, // Disable stripping of unknown properties
+    }).validate(basicSchema)
+    const isAlmostValid = validate(almostValidData)
+    // Check the validation results
+    expect(isAlmostValid).toStrictEqual({
+      valid: false,
+      errors: [
+        {
+          path: 'extraField',
+          message: 'Unexpected property found: extraField',
+          expected: 'undefined',
+          received: 'String',
+          value: "This should cause an error",
+        },
+      ],
+      data: undefined,
+    })
+    expect(isAlmostValid.valid).toBe(false)
+    expect(isAlmostValid.errors.length).toBeGreaterThan(0)
+    expect(isAlmostValid.errors[0]!.message).toContain('Unexpected property found: extraField')
+  })
+
+  it('should not strip or error on unknown properties when options are not set', () => {
+    const basicSchema = {
+      $type: Object,
+      $properties: {
+        name: { $type: String },
+        age: { $type: Number, $optional: true },
+        isActive: { $type: Boolean },
+        hobbies: { $type: [String] },
+      },
+    } as const;
+    type MySchemaType = InferTypeFromMonoSchema<typeof basicSchema>;
+    // MonoSchema type should be inferred correctly
+    const almostValidData: MySchemaType = {
+      name: "John Doe",
+      age: 30,
+      isActive: true,
+      hobbies: ["reading", "gaming"],
+      // @ts-expect-error - should error: extraField is not part of the schema
+      extraField: "This should not cause an error or be stripped", // Extra field not in schema
+    }
+    // Validate the data against the schema
+    const validate = configureMonoSchema().validate(basicSchema)
+    const isAlmostValid = validate(almostValidData)
+    // Check the validation results
+    expect(isAlmostValid).toStrictEqual({
+      valid: true,
+      errors: [],
+      data: {
+        name: "John Doe",
+        age: 30,
+        isActive: true,
+        hobbies: ["reading", "gaming"],
+        extraField: "This should not cause an error or be stripped", // Extra field should remain
+      },
+    })
+  })
 })

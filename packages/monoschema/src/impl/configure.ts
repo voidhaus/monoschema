@@ -7,6 +7,9 @@ import { getTypeName, getValueAtPropertyPath, getSchemaAtPropertyPath, getValueT
 // Main configuration function
 export function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
   const plugins = options.plugins || [];
+  const stripUnknownProperties = options.stripUnknownProperties || false;
+  const errorUnknownProperties = options.errorUnknownProperties || false;
+  
   // Add the default AnyPlugin if not already included
   if (!plugins.some(plugin => plugin.name === AnyPlugin.name)) {
     plugins.push(AnyPlugin)
@@ -17,11 +20,11 @@ export function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
       (value: unknown): ValidationResult<unknown> => {
         try {
           const prevalidated = runPrevalidation(schema, value, "", plugins, monoSchemaInstance);
-          const errors = validateValue(schema, prevalidated, "", plugins, monoSchemaInstance);
+          const validationResult = validateValue(schema, prevalidated, "", plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
           return {
-            valid: errors.length === 0,
-            errors,
-            data: errors.length === 0 ? prevalidated : undefined,
+            valid: validationResult.errors.length === 0,
+            errors: validationResult.errors,
+            data: validationResult.errors.length === 0 ? validationResult.data : undefined,
           };
         } catch (error) {
           if (error instanceof Error) {
@@ -56,11 +59,11 @@ export function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
       (value: unknown): ValidationResult<InferTypeFromMonoSchema<T>> => {
         try {
           const prevalidated = runPrevalidation(schema, value, "", plugins, monoSchemaInstance);
-          const errors = validateValue(schema, prevalidated, "", plugins, monoSchemaInstance);
+          const validationResult = validateValue(schema, prevalidated, "", plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
           return {
-            valid: errors.length === 0,
-            errors,
-            data: errors.length === 0 ? (prevalidated as InferTypeFromMonoSchema<T>) : undefined,
+            valid: validationResult.errors.length === 0,
+            errors: validationResult.errors,
+            data: validationResult.errors.length === 0 ? (validationResult.data as InferTypeFromMonoSchema<T>) : undefined,
           };
         } catch (error) {
           if (error instanceof Error) {
