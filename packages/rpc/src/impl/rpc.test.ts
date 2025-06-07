@@ -739,4 +739,180 @@ describe('RPC Tests', () => {
     expect(syncResult).toEqual(expectedSyncOutput);
     expect(asyncResult).toEqual(expectedAsyncOutput);
   })
+
+  it('should validate output schemas correctly', () => {
+    const router = createRpc({
+      monoschema: configureMonoSchema({
+        stripUnknownProperties: true, // Strip unknown properties from output
+      }),
+      validateOutput: true, // Enable output validation
+    })
+    const myApp = router(
+      namespace({
+        validateOutput: procedure(
+          input({
+            $type: Object,
+            $properties: {
+              name: {
+                $type: String,
+              },
+              age: {
+                $type: Number,
+              },
+            },
+          } as const),
+          output({
+            $type: Object,
+            $properties: {
+              message: {
+                $type: String,
+              },
+            },
+          } as const),
+          resolver(({ name, age }) => {
+            return {
+              message: `Hello ${name}, you are ${age} years old!`,
+              invalid: 'This field should not be here', // This should not be in the output
+            };
+          }
+        ))
+      }),
+    )
+    // Type inference for the application type
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    type MyAppType = InferRpcContract<typeof myApp>;
+    const validJsonRpc = {
+      jsonrpc: '2.0',
+      method: 'validateOutput',
+      params: {
+        name: 'Alice',
+        age: 30,
+      },
+      id: 1,
+    }
+    const expectedValidOutput = {
+      jsonrpc: '2.0',
+      result: {
+        message: 'Hello Alice, you are 30 years old!',
+      },
+      error: null,
+      id: 1,
+    }
+    expect(myApp.callProcedure(validJsonRpc)).toEqual(expectedValidOutput);
+  })
+
+  it('should handle output validation errors', () => {
+    const router = createRpc({
+      monoschema: configureMonoSchema({
+        errorUnknownProperties: true, // Enable error on unknown properties
+      }),
+      validateOutput: true, // Enable output validation
+    })
+    const myApp = router(
+      namespace({
+        validateOutputError: procedure(
+          input({
+            $type: Object,
+            $properties: {
+              name: {
+                $type: String,
+              },
+            },
+          } as const),
+          output({
+            $type: Object,
+            $properties: {
+              message: {
+                $type: String,
+              },
+            },
+          } as const),
+          resolver(({ name }) => {
+            return {
+              message: `Hello ${name}!`,
+              invalidField: 'This field should not be here', // This should cause a validation error
+            };
+          }
+        ))
+      }),
+    )
+    // Type inference for the application type
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    type MyAppType = InferRpcContract<typeof myApp>;
+    const validJsonRpc = {
+      jsonrpc: '2.0',
+      method: 'validateOutputError',
+      params: {
+        name: 'Alice',
+      },
+      id: 1,
+    }
+    const expectedErrorOutput = {
+      jsonrpc: '2.0',
+      error: {
+        code: -32603,
+        message: 'Output validation failed(invalidField): Unexpected property found: invalidField',
+      },
+      id: 1,
+    }
+    expect(myApp.callProcedure(validJsonRpc)).toEqual(expectedErrorOutput);
+  })
+
+  it('should mask output validation errors when configured', () => {
+    const router = createRpc({
+      monoschema: configureMonoSchema({
+        errorUnknownProperties: true, // Enable error on unknown properties
+      }),
+      validateOutput: true, // Enable output validation
+      maskOutputValidationErrors: true, // Mask output validation errors
+    })
+    const myApp = router(
+      namespace({
+        validateOutputMasked: procedure(
+          input({
+            $type: Object,
+            $properties: {
+              name: {
+                $type: String,
+              },
+            },
+          } as const),
+          output({
+            $type: Object,
+            $properties: {
+              message: {
+                $type: String,
+              },
+            },
+          } as const),
+          resolver(({ name }) => {
+            return {
+              message: `Hello ${name}!`,
+              invalidField: 'This field should not be here', // This should cause a validation error
+            };
+          }
+        ))
+      }),
+    )
+    // Type inference for the application type
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    type MyAppType = InferRpcContract<typeof myApp>;
+    const validJsonRpc = {
+      jsonrpc: '2.0',
+      method: 'validateOutputMasked',
+      params: {
+        name: 'Alice',
+      },
+      id: 1,
+    }
+    const expectedErrorOutput = {
+      jsonrpc: '2.0',
+      error: {
+        code: -32603,
+        message: 'Internal server error',
+      },
+      id: 1,
+    }
+    expect(myApp.callProcedure(validJsonRpc)).toEqual(expectedErrorOutput);
+  })
 })

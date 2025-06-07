@@ -77,8 +77,11 @@ export interface RpcConfig {
         received: string;
         value: unknown;
       }>;
+      data?: unknown;
     };
   };
+  validateOutput?: boolean;
+  maskOutputValidationErrors?: boolean;
 }
 
 // Type inference utilities

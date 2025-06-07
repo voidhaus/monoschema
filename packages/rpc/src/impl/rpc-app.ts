@@ -1,5 +1,6 @@
 import type { JsonRpcRequest, JsonRpcResponse, RpcApp, RpcConfig } from '@voidhaus/rpc-types';
-import { validateInput } from './validation';
+import type { MonoSchema } from '@voidhaus/monoschema';
+import { validateInput, validateOutput } from './validation';
 import { findProcedure, executeProcedure } from './procedure-resolver';
 
 /**
@@ -73,7 +74,23 @@ export function createRpcApp<T>(
                 jsonRpcRequest.id
               );
             }
-            return createSuccessResponse(result.result, jsonRpcRequest.id);
+            
+            // Apply output validation if enabled
+            const finalResult = applyOutputValidation(
+              result.result, 
+              procedure._outputSchema, 
+              config
+            );
+            
+            if (!finalResult.valid) {
+              return createErrorResponse(
+                -32603,
+                finalResult.error || 'Output validation failed',
+                jsonRpcRequest.id
+              );
+            }
+            
+            return createSuccessResponse(finalResult.data, jsonRpcRequest.id);
           });
         }
         
@@ -86,7 +103,22 @@ export function createRpcApp<T>(
           );
         }
         
-        return createSuccessResponse(execution.result, jsonRpcRequest.id);
+        // Apply output validation if enabled
+        const finalResult = applyOutputValidation(
+          execution.result, 
+          procedure._outputSchema, 
+          config
+        );
+        
+        if (!finalResult.valid) {
+          return createErrorResponse(
+            -32603,
+            finalResult.error || 'Output validation failed',
+            jsonRpcRequest.id
+          );
+        }
+        
+        return createSuccessResponse(finalResult.data, jsonRpcRequest.id);
         
       } catch {
         const actualRequest = request as JsonRpcRequest | string;
@@ -128,4 +160,33 @@ function createErrorResponse(
     },
     id,
   };
+}
+
+/**
+ * Applies output validation if enabled in the configuration.
+ * Returns the original result if validation is disabled or the validated/transformed result if enabled.
+ */
+function applyOutputValidation(
+  result: unknown,
+  outputSchema: unknown,
+  config: RpcConfig
+): { valid: boolean; data: unknown; error?: string } {
+  // If output validation is not enabled, just return the original result
+  if (!config.validateOutput) {
+    return { valid: true, data: result };
+  }
+  
+  // Apply output validation using the schema
+  const validationResult = validateOutput(result, outputSchema as MonoSchema, config.monoschema);
+  
+  // If validation failed and error masking is enabled, return a generic error
+  if (!validationResult.valid && config.maskOutputValidationErrors) {
+    return { 
+      valid: false, 
+      data: validationResult.data, 
+      error: 'Internal server error' 
+    };
+  }
+  
+  return validationResult;
 }

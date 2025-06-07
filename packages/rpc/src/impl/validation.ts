@@ -31,3 +31,38 @@ export function validateInput(
   
   return { valid: true };
 }
+
+/**
+ * Validates output against a MonoSchema using the provided monoschema validator.
+ * If validation is enabled, it ensures the output conforms to the schema and
+ * can strip unknown properties based on monoschema configuration.
+ */
+export function validateOutput(
+  output: unknown,
+  schema: MonoSchema,
+  monoschema: RpcConfig['monoschema']
+): { valid: boolean; data: unknown; error?: string } {
+  const validate = monoschema.validate(schema);
+  const result = validate(output);
+  
+  if (!result.valid && result.errors.length > 0) {
+    // Format error message for output validation
+    const firstError = result.errors[0];
+    if (firstError) {
+      const fieldName = firstError.path || 'unknown';
+      return { 
+        valid: false, 
+        data: output,
+        error: `Output validation failed(${fieldName}): ${firstError.message}` 
+      };
+    }
+    return { 
+      valid: false, 
+      data: output,
+      error: 'Output validation failed: Validation error' 
+    };
+  }
+  
+  // Return the validated/transformed data (which may have unknown properties stripped)
+  return { valid: true, data: result.data || output };
+}
