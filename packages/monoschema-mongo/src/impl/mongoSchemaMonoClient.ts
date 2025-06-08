@@ -31,6 +31,21 @@ export class MonoSchemaMongoClient {
     return results;
   }
 
+  public async findOne<T extends InferTypeFromMonoSchema<MonoSchema>>(
+    collectionName: string,
+    query: ReturnType<typeof monoSchemaQuery<T>>,
+    options?: FindOptions & Abortable
+  ): Promise<WithId<T & Document> | null> {
+    if (!this.mongoClient) {
+      throw new Error("MongoDB client not initialized.");
+    }
+    const collection = this.mongoClient
+      .db()
+      .collection<T & Document>(collectionName);
+    const result = await collection.findOne(query.toMongo(), options);
+    return result as WithId<T & Document> | null;
+  }
+
   public async insertOne<T extends InferTypeFromMonoSchema<MonoSchema>>(
     collectionName: string,
     document: OptionalUnlessRequiredId<T & Document>,

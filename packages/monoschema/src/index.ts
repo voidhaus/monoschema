@@ -8,4 +8,5 @@ export {
   type MonoSchema,
   type MonoSchemaProperty,
   type MonoSchemaInstance,
+  Any,
 } from "./impl/monoschema";
