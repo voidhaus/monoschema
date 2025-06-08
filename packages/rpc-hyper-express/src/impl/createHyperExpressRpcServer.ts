@@ -1,4 +1,4 @@
-import { RpcApp } from "@voidhaus/rpc";
+import { RpcApp, HttpContext, RpcContext } from "@voidhaus/rpc";
 import HyperExpress from "hyper-express";
 
 export type HyperExpressConfigOptions = {
@@ -56,8 +56,42 @@ export const createHyperExpressRpcServer = <T>(
       });
     }
 
+    // Create HTTP context from HyperExpress request
+    const httpContext: HttpContext = {
+      getHeader: (name: string) => req.header(name),
+      getHeaders: () => {
+        const headers: Record<string, string | string[]> = {};
+        // HyperExpress doesn't provide a direct way to get all headers
+        // This is a limitation, but we can work with common headers
+        return headers;
+      },
+      getQueryParameter: (name: string) => {
+        const param = req.query_parameters[name];
+        return Array.isArray(param) ? param[0] : param;
+      },
+      getQueryParameters: () => {
+        const params: Record<string, string | string[]> = {};
+        Object.entries(req.query_parameters).forEach(([key, value]) => {
+          if (value !== undefined) {
+            params[key] = value as string | string[];
+          }
+        });
+        return params;
+      },
+      getMethod: () => req.method,
+      getUrl: () => req.url,
+      getPath: () => req.path,
+      getBody: () => body,
+    };
+
+    // Create RPC context with the monoschema instance from the router config
+    const rpcContext: RpcContext = {
+      monoschema: router._config.monoschema,
+      http: httpContext,
+    };
+
     try {
-      const result = await router.callProcedure(body);
+      const result = await router.callProcedure(body, rpcContext);
       return res.status(200).json(result);
     } catch {
       // Internal server error in JSON-RPC format

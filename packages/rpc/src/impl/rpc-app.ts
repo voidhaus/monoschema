@@ -1,4 +1,4 @@
-import type { JsonRpcRequest, JsonRpcResponse, RpcApp, RpcConfig } from '@voidhaus/rpc-types';
+import type { JsonRpcRequest, JsonRpcResponse, RpcApp, RpcConfig, RpcContext } from '@voidhaus/rpc-types';
 import type { MonoSchema } from '@voidhaus/monoschema';
 import { validateInput, validateOutput } from './validation';
 import { findProcedure, executeProcedure } from './procedure-resolver';
@@ -14,7 +14,8 @@ export function createRpcApp<T>(
 ): RpcApp<T> {
   return {
     _definition: definition,
-    callProcedure(request: JsonRpcRequest): JsonRpcResponse | Promise<JsonRpcResponse> {
+    _config: config,
+    callProcedure(request: JsonRpcRequest, context: RpcContext): JsonRpcResponse | Promise<JsonRpcResponse> {
       try {
         // Handle string requests (invalid JSON) - cast to allow string for testing
         const actualRequest = request as JsonRpcRequest | string;
@@ -62,7 +63,7 @@ export function createRpcApp<T>(
         }
         
         // Execute the resolver
-        const execution = executeProcedure(procedure, jsonRpcRequest.params);
+        const execution = executeProcedure(procedure, jsonRpcRequest.params, context);
         
         // Check if execution returns a Promise
         if (execution instanceof Promise) {

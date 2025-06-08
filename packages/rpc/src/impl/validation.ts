@@ -1,5 +1,5 @@
-import type { MonoSchema } from '@voidhaus/monoschema';
-import type { RpcConfig, ValidationResult } from '@voidhaus/rpc-types';
+import type { MonoSchema, MonoSchemaInstance } from '@voidhaus/monoschema';
+import type { ValidationResult } from '@voidhaus/rpc-types';
 
 /**
  * Validates input parameters against a MonoSchema using the provided monoschema validator.
@@ -8,7 +8,7 @@ import type { RpcConfig, ValidationResult } from '@voidhaus/rpc-types';
 export function validateInput(
   input: unknown,
   schema: MonoSchema,
-  monoschema: RpcConfig['monoschema']
+  monoschema: MonoSchemaInstance
 ): ValidationResult {
   const validate = monoschema.validate(schema);
   const result = validate(input);
@@ -40,7 +40,7 @@ export function validateInput(
 export function validateOutput(
   output: unknown,
   schema: MonoSchema,
-  monoschema: RpcConfig['monoschema']
+  monoschema: MonoSchemaInstance
 ): { valid: boolean; data: unknown; error?: string } {
   const validate = monoschema.validate(schema);
   const result = validate(output);

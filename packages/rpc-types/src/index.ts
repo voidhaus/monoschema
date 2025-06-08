@@ -1,4 +1,22 @@
-import type { MonoSchema } from '@voidhaus/monoschema';
+import type { MonoSchema, MonoSchemaInstance } from '@voidhaus/monoschema';
+
+// HTTP Context abstraction interface
+export interface HttpContext {
+  getHeader(name: string): string | undefined;
+  getHeaders(): Record<string, string | string[]>;
+  getQueryParameter(name: string): string | undefined;
+  getQueryParameters(): Record<string, string | string[]>;
+  getMethod(): string;
+  getUrl(): string;
+  getPath(): string;
+  getBody(): unknown;
+}
+
+// RPC Context that includes monoschema instance and HTTP context
+export interface RpcContext {
+  monoschema: MonoSchemaInstance;
+  http: HttpContext;
+}
 
 // JSON-RPC protocol types
 export interface JsonRpcRequest {
@@ -30,7 +48,7 @@ export interface OutputWrapper<T extends MonoSchema> {
 }
 
 export interface ResolverWrapper<I, O> {
-  _resolver: (input: I) => O | Promise<O>;
+  _resolver: (input: I, context: RpcContext) => O | Promise<O>;
   _tag: 'resolver';
 }
 
@@ -42,14 +60,15 @@ export interface NamespaceWrapper<T> {
 export interface Procedure<I, O> {
   _inputSchema: MonoSchema;
   _outputSchema: MonoSchema;
-  _resolver: (input: I) => O | Promise<O>;
+  _resolver: (input: I, context: RpcContext) => O | Promise<O>;
   _tag: 'procedure';
 }
 
 // RPC App interface
 export interface RpcApp<T> {
   _definition: T;
-  callProcedure(request: JsonRpcRequest): JsonRpcResponse | Promise<JsonRpcResponse>;
+  _config: RpcConfig;
+  callProcedure(request: JsonRpcRequest, context: RpcContext): JsonRpcResponse | Promise<JsonRpcResponse>;
 }
 
 // Router function type with overloads for type checking and inference
@@ -67,19 +86,7 @@ export interface RpcRouter {
 
 // Configuration types
 export interface RpcConfig {
-  monoschema: {
-    validate: <T extends MonoSchema>(schema: T) => (value: unknown) => {
-      valid: boolean;
-      errors: Array<{
-        path: string;
-        message: string;
-        expected: string;
-        received: string;
-        value: unknown;
-      }>;
-      data?: unknown;
-    };
-  };
+  monoschema: MonoSchemaInstance;
   validateOutput?: boolean;
   maskOutputValidationErrors?: boolean;
 }

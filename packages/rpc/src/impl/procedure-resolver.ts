@@ -1,4 +1,4 @@
-import type { Procedure, NamespaceWrapper } from '@voidhaus/rpc-types';
+import type { Procedure, NamespaceWrapper, RpcContext } from '@voidhaus/rpc-types';
 
 /**
  * Finds a procedure by method path within a nested namespace structure.
@@ -47,10 +47,11 @@ export function findProcedure(
  */
 export function executeProcedure(
   procedure: Procedure<unknown, unknown>,
-  params: unknown
+  params: unknown,
+  context: RpcContext
 ): { success: true; result: unknown } | { success: false; error: string } | Promise<{ success: true; result: unknown } | { success: false; error: string }> {
   try {
-    const result = procedure._resolver(params);
+    const result = procedure._resolver(params, context);
     
     // Check if result is a Promise
     if (result instanceof Promise) {

@@ -4,7 +4,8 @@ import type {
   OutputWrapper,
   ResolverWrapper,
   NamespaceWrapper,
-  Procedure
+  Procedure,
+  RpcContext
 } from '@voidhaus/rpc-types';
 
 /**
@@ -33,7 +34,7 @@ export function output<T extends MonoSchema>(schema: T): OutputWrapper<T> {
  * Creates a typed resolver wrapper that can be used with procedure().
  * This allows for better type inference and reusability of resolver functions.
  */
-export function resolver<I = unknown, O = unknown>(fn: (input: I) => O | Promise<O>): ResolverWrapper<I, O> {
+export function resolver<I = unknown, O = unknown>(fn: (input: I, context: RpcContext) => O | Promise<O>): ResolverWrapper<I, O> {
   return {
     _resolver: fn,
     _tag: 'resolver',
@@ -70,13 +71,13 @@ export function procedure<
 >(
   inputWrapper: InputWrapper<TInput>,
   outputWrapper: OutputWrapper<TOutput>,
-  resolverFn: (input: InferTypeFromMonoSchema<TInput>) => InferTypeFromMonoSchema<TOutput> | Promise<InferTypeFromMonoSchema<TOutput>>
+  resolverFn: (input: InferTypeFromMonoSchema<TInput>, context: RpcContext) => InferTypeFromMonoSchema<TOutput> | Promise<InferTypeFromMonoSchema<TOutput>>
 ): Procedure<InferTypeFromMonoSchema<TInput>, InferTypeFromMonoSchema<TOutput>>;
 
 export function procedure(
   inputWrapper: InputWrapper<MonoSchema>,
   outputWrapper: OutputWrapper<MonoSchema>,
-  resolverWrapper: ResolverWrapper<unknown, unknown> | ((input: unknown) => unknown | Promise<unknown>)
+  resolverWrapper: ResolverWrapper<unknown, unknown> | ((input: unknown, context: RpcContext) => unknown | Promise<unknown>)
 ): Procedure<unknown, unknown> {
   const resolverFn = typeof resolverWrapper === 'function' 
     ? resolverWrapper 
