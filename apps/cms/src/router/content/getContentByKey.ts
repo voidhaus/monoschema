@@ -8,7 +8,7 @@ const getContentByKeyResolver = resolver<
   // Here you would typically save the block type to a database or similar
   // For this example, we will just return the input as the created block type
   return {
-    __BLOCK_TYPE__: "hyperlink",
+    blockKey: "hyperlink",
     key: input.key,
     properties: {
       href: "https://example.com",
