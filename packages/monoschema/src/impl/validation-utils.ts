@@ -42,18 +42,18 @@ export function isCustomType(type: unknown): boolean {
 }
 
 // Validation constraint checking
-export function validateConstraints(
+export async function validateConstraints(
   value: unknown,
   constraints: readonly Constraint[] | undefined,
   path: string,
   expectedType: string
-): ValidationError[] {
+): Promise<ValidationError[]> {
   if (!Array.isArray(constraints)) return [];
   
   const errors: ValidationError[] = [];
   for (const constraint of constraints) {
     if (typeof constraint.validate === "function") {
-      const valid = constraint.validate(value);
+      const valid = await constraint.validate(value);
       if (!valid) {
         errors.push({
           path,

@@ -3,13 +3,13 @@ import type { MonoSchemaProperty, Plugin, ValidationError, MonoSchemaInstance } 
 import { getValueTypeName, isCustomType, validateConstraints, getTypeName } from "./validation-utils";
 
 // Plugin validation
-export function validateCustomType(
+export async function validateCustomType(
   schema: MonoSchemaProperty,
   value: unknown,
   path: string,
   plugins: Plugin[],
   monoSchemaInstance?: MonoSchemaInstance
-): { errors: ValidationError[]; data: unknown } {
+): Promise<{ errors: ValidationError[]; data: unknown }> {
   // Find plugin type
   const pluginType = plugins
     .flatMap((p) => p.types)
@@ -22,7 +22,7 @@ export function validateCustomType(
     });
 
   // If $type is a function (factory), call it; if it's an object with validate, use it directly
-  let pluginInstance: { validate: (value: unknown, monoSchemaInstance?: MonoSchemaInstance) => unknown } | null = null;
+  let pluginInstance: { validate: (value: unknown, monoSchemaInstance?: MonoSchemaInstance) => unknown | Promise<unknown> } | null = null;
   
   if (
     typeof schema.$type === "function" &&
@@ -34,7 +34,7 @@ export function validateCustomType(
     schema.$type !== Array
   ) {
     try {
-      pluginInstance = (schema.$type as (...args: unknown[]) => { validate: (value: unknown, monoSchemaInstance?: MonoSchemaInstance) => unknown })();
+      pluginInstance = (schema.$type as (...args: unknown[]) => { validate: (value: unknown, monoSchemaInstance?: MonoSchemaInstance) => unknown | Promise<unknown> })();
     } catch {
       pluginInstance = null;
     }
@@ -43,11 +43,11 @@ export function validateCustomType(
     schema.$type !== null && 
     typeof (schema.$type as unknown as Record<string, unknown>).validate === "function"
   ) {
-    pluginInstance = schema.$type as unknown as { validate: (value: unknown, monoSchemaInstance?: MonoSchemaInstance) => unknown };
+    pluginInstance = schema.$type as unknown as { validate: (value: unknown, monoSchemaInstance?: MonoSchemaInstance) => unknown | Promise<unknown> };
   }
 
   if (pluginInstance && typeof pluginInstance.validate === "function") {
-    const result = pluginInstance.validate(value, monoSchemaInstance);
+    const result = await pluginInstance.validate(value, monoSchemaInstance);
     if (result && typeof result === "object" && result !== null) {
       const validationResult = result as { valid?: boolean; errors?: unknown[] };
       if (validationResult.valid === false && Array.isArray(validationResult.errors)) {
@@ -78,14 +78,14 @@ export function validateCustomType(
 }
 
 // Built-in type validation
-export function validateBuiltinType(
+export async function validateBuiltinType(
   schema: MonoSchemaProperty,
   value: unknown,
   path: string,
   monoSchemaInstance?: MonoSchemaInstance,
   stripUnknownProperties?: boolean,
   errorUnknownProperties?: boolean
-): { errors: ValidationError[]; data: unknown } {
+): Promise<{ errors: ValidationError[]; data: unknown }> {
   const createError = (expected: string): ValidationError => ({
     path,
     message: `Expected type ${expected}, but received ${getValueTypeName(value)}`,
@@ -98,7 +98,7 @@ export function validateBuiltinType(
     if (typeof value !== "string") {
       return { errors: [createError("String")], data: value };
     }
-    const constraintErrors = validateConstraints(value, schema.$constraints, path, "String");
+    const constraintErrors = await validateConstraints(value, schema.$constraints, path, "String");
     return { errors: constraintErrors, data: value };
   }
 
@@ -106,7 +106,7 @@ export function validateBuiltinType(
     if (typeof value !== "number") {
       return { errors: [createError("Number")], data: value };
     }
-    const constraintErrors = validateConstraints(value, schema.$constraints, path, "Number");
+    const constraintErrors = await validateConstraints(value, schema.$constraints, path, "Number");
     return { errors: constraintErrors, data: value };
   }
 
@@ -114,7 +114,7 @@ export function validateBuiltinType(
     if (typeof value !== "boolean") {
       return { errors: [createError("Boolean")], data: value };
     }
-    const constraintErrors = validateConstraints(value, schema.$constraints, path, "Boolean");
+    const constraintErrors = await validateConstraints(value, schema.$constraints, path, "Boolean");
     return { errors: constraintErrors, data: value };
   }
 
@@ -122,7 +122,7 @@ export function validateBuiltinType(
     if (!(value instanceof Date)) {
       return { errors: [createError("Date")], data: value };
     }
-    const constraintErrors = validateConstraints(value, schema.$constraints, path, "Date");
+    const constraintErrors = await validateConstraints(value, schema.$constraints, path, "Date");
     return { errors: constraintErrors, data: value };
   }
 
@@ -132,7 +132,7 @@ export function validateBuiltinType(
     }
 
     // Validate constraints first
-    const constraintErrors = validateConstraints(value, schema.$constraints, path, "Object");
+    const constraintErrors = await validateConstraints(value, schema.$constraints, path, "Object");
     if (constraintErrors.length > 0) return { errors: constraintErrors, data: value };
 
     // Create a copy of the value to potentially modify
@@ -159,7 +159,7 @@ export function validateBuiltinType(
             });
           }
         } else {
-          const propResult = validateValue(propSchema, propValue, propPath, [], monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
+          const propResult = await validateValue(propSchema, propValue, propPath, [], monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
           errors = errors.concat(propResult.errors);
           // Update the processed data with the validated/processed property value
           processedData[key] = propResult.data;
@@ -198,7 +198,7 @@ export function validateBuiltinType(
 }
 
 // Array validation
-export function validateArrayType(
+export async function validateArrayType(
   schema: MonoSchemaProperty,
   value: unknown,
   path: string,
@@ -206,7 +206,7 @@ export function validateArrayType(
   monoSchemaInstance?: MonoSchemaInstance,
   stripUnknownProperties?: boolean,
   errorUnknownProperties?: boolean
-): { errors: ValidationError[]; data: unknown } {
+): Promise<{ errors: ValidationError[]; data: unknown }> {
   if (!Array.isArray(schema.$type)) return { errors: [], data: value };
 
   if (!Array.isArray(value)) {
@@ -241,7 +241,7 @@ export function validateArrayType(
 
   for (let idx = 0; idx < value.length; idx++) {
     const item = value[idx];
-    const itemResult = validateValue(
+    const itemResult = await validateValue(
       { $type: itemType, $constraints: schema.$constraints },
       item,
       path ? `${path}.${idx}` : `${idx}`,
@@ -258,7 +258,7 @@ export function validateArrayType(
 }
 
 // Main validation function
-export function validateValue(
+export async function validateValue(
   schema: MonoSchemaProperty,
   value: unknown,
   path: string,
@@ -266,10 +266,10 @@ export function validateValue(
   monoSchemaInstance?: MonoSchemaInstance,
   stripUnknownProperties?: boolean,
   errorUnknownProperties?: boolean
-): { errors: ValidationError[]; data: unknown } {
+): Promise<{ errors: ValidationError[]; data: unknown }> {
   // Handle array types
   if (Array.isArray(schema.$type)) {
-    return validateArrayType(schema, value, path, plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
+    return await validateArrayType(schema, value, path, plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
   }
 
   // Handle custom plugin types
@@ -279,21 +279,21 @@ export function validateValue(
      schema.$type !== null && 
      typeof (schema.$type as unknown as Record<string, unknown>).validate === "function")
   ) {
-    return validateCustomType(schema, value, path, plugins, monoSchemaInstance);
+    return await validateCustomType(schema, value, path, plugins, monoSchemaInstance);
   }
 
   // Handle built-in types
-  return validateBuiltinType(schema, value, path, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
+  return await validateBuiltinType(schema, value, path, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
 }
 
 // Prevalidation processing
-export function runPrevalidation(
+export async function runPrevalidation(
   schema: MonoSchemaProperty,
   value: unknown,
   path: string,
   plugins: Plugin[],
   monoSchemaInstance?: MonoSchemaInstance
-): unknown {
+): Promise<unknown> {
   let result = value;
   
   // Run all plugin prevalidate functions for this property
@@ -308,7 +308,7 @@ export function runPrevalidation(
   // Recurse for arrays and objects
   if (Array.isArray(schema.$type) && Array.isArray(result)) {
     const itemType = schema.$type[0];
-    return result.map((item, idx) =>
+    return await Promise.all(result.map((item, idx) =>
       runPrevalidation(
         { $type: itemType, $constraints: schema.$constraints },
         item,
@@ -316,7 +316,7 @@ export function runPrevalidation(
         plugins,
         monoSchemaInstance
       )
-    );
+    ));
   }
 
   if (schema.$type === Object && schema.$properties && typeof result === 'object' && result !== null && !Array.isArray(result)) {
@@ -325,7 +325,7 @@ export function runPrevalidation(
       if (Object.prototype.hasOwnProperty.call(schema.$properties, key)) {
         const propSchema = schema.$properties[key];
         if (!propSchema) continue;
-        out[key] = runPrevalidation(
+        out[key] = await runPrevalidation(
           propSchema,
           (result as Record<string, unknown>)[key],
           path ? `${path}.${key}` : key,

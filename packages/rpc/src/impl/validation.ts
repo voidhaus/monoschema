@@ -5,13 +5,13 @@ import type { ValidationResult } from '@voidhaus/rpc-types';
  * Validates input parameters against a MonoSchema using the provided monoschema validator.
  * Formats error messages to match the expected JSON-RPC error format.
  */
-export function validateInput(
+export async function validateInput(
   input: unknown,
   schema: MonoSchema,
   monoschema: MonoSchemaInstance
-): ValidationResult {
+): Promise<ValidationResult> {
   const validate = monoschema.validate(schema);
-  const result = validate(input);
+  const result = await validate(input);
   
   if (!result.valid && result.errors.length > 0) {
     // Format error message to match expected test format
@@ -37,13 +37,13 @@ export function validateInput(
  * If validation is enabled, it ensures the output conforms to the schema and
  * can strip unknown properties based on monoschema configuration.
  */
-export function validateOutput(
+export async function validateOutput(
   output: unknown,
   schema: MonoSchema,
   monoschema: MonoSchemaInstance
-): { valid: boolean; data: unknown; error?: string } {
+): Promise<{ valid: boolean; data: unknown; error?: string }> {
   const validate = monoschema.validate(schema);
-  const result = validate(output);
+  const result = await validate(output);
   
   if (!result.valid && result.errors.length > 0) {
     // Format error message for output validation

@@ -1,10 +1,25 @@
 import { describe, it, expect } from 'vitest';
 import { configureMonoSchema, InferTypeFromMonoSchema } from '@voidhaus/monoschema';
 import { createRpc, namespace, procedure, input, output, resolver } from './rpc';
-import { InferRpcContract } from '@voidhaus/rpc-types';
+import { InferRpcContract, RpcContext } from '@voidhaus/rpc-types';
+
+// Mock context for testing
+const mockContext: RpcContext = {
+  monoschema: configureMonoSchema(),
+  http: {
+    getHeader: () => undefined,
+    getHeaders: () => ({}),
+    getQueryParameter: () => undefined,
+    getQueryParameters: () => ({}),
+    getMethod: () => 'POST',
+    getUrl: () => 'http://localhost',
+    getPath: () => '/',
+    getBody: () => ({}),
+  }
+};
 
 describe('RPC Tests', () => {
-  it('should process basic request', () => {
+  it('should process basic request', async () => {
     const inputSchema = {
       $type: Object,
       $properties: {
@@ -60,10 +75,10 @@ describe('RPC Tests', () => {
       error: null,
       id: 1,
     }
-    expect(myApp.callProcedure(jsonRpc)).toEqual(expectedOutput);
+    expect(await myApp.callProcedure(jsonRpc, mockContext)).toEqual(expectedOutput);
   })
 
-  it('should build resolvers from typed schemas', () => {
+  it('should build resolvers from typed schemas', async () => {
     const inputSchema = {
       $type: Object,
       $properties: {
@@ -124,10 +139,10 @@ describe('RPC Tests', () => {
       error: null,
       id: 1,
     }
-    expect(myApp.callProcedure(jsonRpc)).toEqual(expectedOutput);
+    expect(await myApp.callProcedure(jsonRpc, mockContext)).toEqual(expectedOutput);
   })
 
-  it('should process nested requests', () => {
+  it('should process nested requests', async () => {
     const router = createRpc({
       monoschema: configureMonoSchema(),
     })
@@ -179,10 +194,10 @@ describe('RPC Tests', () => {
       error: null,
       id: 1,
     }
-    expect(myApp.callProcedure(jsonRpc)).toEqual(expectedOutput);
+    expect(await myApp.callProcedure(jsonRpc, mockContext)).toEqual(expectedOutput);
   })
 
-  it('should handle nested namespaces with multiple levels', () => {
+  it('should handle nested namespaces with multiple levels', async () => {
     const router = createRpc({
       monoschema: configureMonoSchema(),
     })
@@ -236,10 +251,10 @@ describe('RPC Tests', () => {
       error: null,
       id: 1,
     }
-    expect(myApp.callProcedure(jsonRpc)).toEqual(expectedOutput);
+    expect(await myApp.callProcedure(jsonRpc, mockContext)).toEqual(expectedOutput);
   })
 
-  it('should handle multiple procedures in a namespace', () => {
+  it('should handle multiple procedures in a namespace', async () => {
     const router = createRpc({
       monoschema: configureMonoSchema(),
     })
@@ -328,11 +343,11 @@ describe('RPC Tests', () => {
       error: null,
       id: 2,
     }
-    expect(myApp.callProcedure(helloJsonRpc)).toEqual(expectedHelloOutput);
-    expect(myApp.callProcedure(goodbyeJsonRpc)).toEqual(expectedGoodbyeOutput);
+    expect(await myApp.callProcedure(helloJsonRpc, mockContext)).toEqual(expectedHelloOutput);
+    expect(await myApp.callProcedure(goodbyeJsonRpc, mockContext)).toEqual(expectedGoodbyeOutput);
   })
 
-  it('should handle errors in procedures', () => {
+  it('should handle errors in procedures', async () => {
     const router = createRpc({
       monoschema: configureMonoSchema(),
     })
@@ -380,10 +395,10 @@ describe('RPC Tests', () => {
       },
       id: 1,
     }
-    expect(myApp.callProcedure(jsonRpc)).toEqual(expectedErrorOutput);
+    expect(await myApp.callProcedure(jsonRpc, mockContext)).toEqual(expectedErrorOutput);
   })
 
-  it('should handle invalid JSON-RPC requests gracefully', () => {
+  it('should handle invalid JSON-RPC requests gracefully', async () => {
     const router = createRpc({
       monoschema: configureMonoSchema(),
     })
@@ -433,7 +448,7 @@ describe('RPC Tests', () => {
       },
       id: 1,
     }
-    expect(myApp.callProcedure(invalidJsonRpc)).toEqual(expectedErrorOutput);
+    expect(await myApp.callProcedure(invalidJsonRpc, mockContext)).toEqual(expectedErrorOutput);
     const invalidMethodJsonRpc = {
       jsonrpc: '2.0',
       method: 'nonExistentMethod',
@@ -450,7 +465,7 @@ describe('RPC Tests', () => {
       },
       id: 1,
     }
-    expect(myApp.callProcedure(invalidMethodJsonRpc)).toEqual(expectedMethodErrorOutput);
+    expect(await myApp.callProcedure(invalidMethodJsonRpc, mockContext)).toEqual(expectedMethodErrorOutput);
 
     const invalidJsonRpcFormat = {
       jsonrpc: '2.0',
@@ -466,7 +481,7 @@ describe('RPC Tests', () => {
       id: 1,
     }
     // @ts-expect-error - Intentionally passing an invalid format
-    expect(myApp.callProcedure(invalidJsonRpcFormat)).toEqual(expectedFormatErrorOutput);
+    expect(await myApp.callProcedure(invalidJsonRpcFormat, mockContext)).toEqual(expectedFormatErrorOutput);
 
     const invalidJsonRpcBody = "This is not a valid JSON-RPC request";
     const expectedBodyErrorOutput = {
@@ -478,10 +493,10 @@ describe('RPC Tests', () => {
       id: null,
     }
     // @ts-expect-error - Intentionally passing an invalid string body, should only accept an object
-    expect(myApp.callProcedure(invalidJsonRpcBody)).toEqual(expectedBodyErrorOutput);
+    expect(await myApp.callProcedure(invalidJsonRpcBody, mockContext)).toEqual(expectedBodyErrorOutput);
   })
 
-  it('should validate input parameters correctly using monoschema', () => {
+  it('should validate input parameters correctly using monoschema', async () => {
     const router = createRpc({
       monoschema: configureMonoSchema(),
     })
@@ -536,7 +551,7 @@ describe('RPC Tests', () => {
       error: null,
       id: 1,
     }
-    expect(myApp.callProcedure(validJsonRpc)).toEqual(expectedValidOutput);
+    expect(await myApp.callProcedure(validJsonRpc, mockContext)).toEqual(expectedValidOutput);
 
     const invalidJsonRpc = {
       jsonrpc: '2.0',
@@ -555,7 +570,7 @@ describe('RPC Tests', () => {
       },
       id: 1,
     }
-    expect(myApp.callProcedure(invalidJsonRpc)).toEqual(expectedInvalidOutput);
+    expect(await myApp.callProcedure(invalidJsonRpc, mockContext)).toEqual(expectedInvalidOutput);
 
     const invalidTypeJsonRpc = {
       jsonrpc: '2.0',
@@ -574,7 +589,7 @@ describe('RPC Tests', () => {
       },
       id: 1,
     }
-    expect(myApp.callProcedure(invalidTypeJsonRpc)).toEqual(expectedTypeErrorOutput);
+    expect(await myApp.callProcedure(invalidTypeJsonRpc, mockContext)).toEqual(expectedTypeErrorOutput);
   })
 
   it('should support asynchronous procedures', async () => {
@@ -633,7 +648,7 @@ describe('RPC Tests', () => {
       error: null,
       id: 1,
     }
-    const result = await myApp.callProcedure(jsonRpc);
+    const result = await myApp.callProcedure(jsonRpc, mockContext);
     expect(result).toEqual(expectedOutput);
   })
 
@@ -733,14 +748,14 @@ describe('RPC Tests', () => {
     }
     
     // Both should work, but async requires await
-    const syncResult = myApp.callProcedure(syncJsonRpc);
-    const asyncResult = await myApp.callProcedure(asyncJsonRpc);
+    const syncResult = await myApp.callProcedure(syncJsonRpc, mockContext);
+    const asyncResult = await myApp.callProcedure(asyncJsonRpc, mockContext);
     
     expect(syncResult).toEqual(expectedSyncOutput);
     expect(asyncResult).toEqual(expectedAsyncOutput);
   })
 
-  it('should validate output schemas correctly', () => {
+  it('should validate output schemas correctly', async () => {
     const router = createRpc({
       monoschema: configureMonoSchema({
         stripUnknownProperties: true, // Strip unknown properties from output
@@ -798,10 +813,10 @@ describe('RPC Tests', () => {
       error: null,
       id: 1,
     }
-    expect(myApp.callProcedure(validJsonRpc)).toEqual(expectedValidOutput);
+    expect(await myApp.callProcedure(validJsonRpc, mockContext)).toEqual(expectedValidOutput);
   })
 
-  it('should handle output validation errors', () => {
+  it('should handle output validation errors', async () => {
     const router = createRpc({
       monoschema: configureMonoSchema({
         errorUnknownProperties: true, // Enable error on unknown properties
@@ -855,10 +870,10 @@ describe('RPC Tests', () => {
       },
       id: 1,
     }
-    expect(myApp.callProcedure(validJsonRpc)).toEqual(expectedErrorOutput);
+    expect(await myApp.callProcedure(validJsonRpc, mockContext)).toEqual(expectedErrorOutput);
   })
 
-  it('should mask output validation errors when configured', () => {
+  it('should mask output validation errors when configured', async () => {
     const router = createRpc({
       monoschema: configureMonoSchema({
         errorUnknownProperties: true, // Enable error on unknown properties
@@ -913,6 +928,6 @@ describe('RPC Tests', () => {
       },
       id: 1,
     }
-    expect(myApp.callProcedure(validJsonRpc)).toEqual(expectedErrorOutput);
+    expect(await myApp.callProcedure(validJsonRpc, mockContext)).toEqual(expectedErrorOutput);
   })
 })

@@ -1,5 +1,5 @@
 export type Constraint = {
-  validate: (value: unknown) => boolean;
+  validate: (value: unknown) => boolean | Promise<boolean>;
   message: (value: unknown) => string;
 }
 

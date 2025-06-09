@@ -3,7 +3,7 @@ import { configureMonoSchema, MonogSchemaPropertPath, InferTypeFromMonoSchema, P
 import { max, min } from "./constraints";
 
 describe('monoschema', () => {
-  it('should allow creating a schema', () => {
+  it('should allow creating a schema', async () => {
     const monoSchema = configureMonoSchema()
     const basicSchema = {
       $type: Object,
@@ -40,9 +40,9 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = monoSchema.validate(basicSchema)
-    const isValid = validate(validData)
-    const isValidOptional = validate(validOptionalData)
-    const isInvalid = validate(invalidData)
+    const isValid = await validate(validData)
+    const isValidOptional = await validate(validOptionalData)
+    const isInvalid = await validate(invalidData)
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [], data: validData })
     expect(isValidOptional).toStrictEqual({ valid: true, errors: [], data: validOptionalData })
@@ -61,7 +61,7 @@ describe('monoschema', () => {
     })
   })
 
-  it('should allow creating a schema with nested objects', () => {
+  it('should allow creating a schema with nested objects', async () => {
     const monoSchema = configureMonoSchema()
     const nestedSchema = {
       $type: Object,
@@ -100,8 +100,8 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = monoSchema.validate(nestedSchema)
-    const isValid = validate(validData)
-    const isInvalid = validate({
+    const isValid = await validate(validData)
+    const isInvalid = await validate({
       name: "John Doe",
       age: 30,
       address: {
@@ -127,7 +127,7 @@ describe('monoschema', () => {
     })
   })
 
-  it('should allow extension of schemas', () => {
+  it('should allow extension of schemas', async () => {
     const MyEnum = () => {
       const validValues = ["value1", "value2", "value3"]
 
@@ -213,8 +213,8 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = monoSchema.validate(basicSchema)
-    const isValid = validate(validData)
-    const isInvalid = validate(invalidData)
+    const isValid = await validate(validData)
+    const isInvalid = await validate(invalidData)
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [], data: validData })
     expect(isInvalid).toStrictEqual({
@@ -492,7 +492,7 @@ describe('monoschema', () => {
     }
   })
 
-  it('should allow custom constraints', () => {
+  it('should allow custom constraints', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -518,8 +518,8 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = configureMonoSchema().validate(basicSchema)
-    const isValid = validate(validData)
-    const isInvalid = validate(invalidData)
+    const isValid = await validate(validData)
+    const isInvalid = await validate(invalidData)
 
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [], data: validData })
@@ -538,7 +538,7 @@ describe('monoschema', () => {
     })
   })
 
-  it('should show multiple errors for multiple constraints', () => {
+  it('should show multiple errors for multiple constraints', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -560,7 +560,7 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = configureMonoSchema().validate(basicSchema)
-    const isInvalid = validate(invalidData)
+    const isInvalid = await validate(invalidData)
     // Check the validation results
     expect(isInvalid).toStrictEqual({
       valid: false,
@@ -584,7 +584,7 @@ describe('monoschema', () => {
     })
   })
 
-  it('should only run constraints on optional properties if they are present', () => {
+  it('should only run constraints on optional properties if they are present', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -607,7 +607,7 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = configureMonoSchema().validate(basicSchema)
-    const isValid = validate(validData)
+    const isValid = await validate(validData)
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [], data: validData })
   })
@@ -668,7 +668,7 @@ describe('monoschema', () => {
     validData.hasOptedInMarketing = false; // Attempt to update readonly property (should error)
   })
 
-  it('should support dates', () => {
+  it('should support dates', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -691,8 +691,8 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = configureMonoSchema().validate(basicSchema)
-    const isValid = validate(validData)
-    const isInvalid = validate(invalidData)
+    const isValid = await validate(validData)
+    const isInvalid = await validate(invalidData)
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [], data: validData })
     expect(isInvalid).toStrictEqual({
@@ -710,7 +710,7 @@ describe('monoschema', () => {
     })
   })
 
-  it('should support prevalidation with plugins', () => {
+  it('should support prevalidation with plugins', async () => {
     const MyPlugin: Plugin = {
       name: "MyPlugin",
       description: "A plugin for prevalidation",
@@ -747,7 +747,7 @@ describe('monoschema', () => {
 
     // Validate the data against the schema
     const validate = monoSchema.validate(basicSchema)
-    const isValid = validate(validData)
+    const isValid = await validate(validData)
 
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [], data: {
@@ -757,7 +757,7 @@ describe('monoschema', () => {
     }})
   })
 
-  it('should be able to handle nested schemas', () => {
+  it('should be able to handle nested schemas', async () => {
     const propertySchema = {
       $type: Object,
       $properties: {
@@ -783,12 +783,12 @@ describe('monoschema', () => {
     } as const;
     const BuildingBlockType = Object.assign(
       () => ({
-        validate: (value: unknown, monoschemaInstance?: MonoSchemaInstance) => {
+        validate: async (value: unknown, monoschemaInstance?: MonoSchemaInstance) => {
           if (!monoschemaInstance) {
             return { valid: false, errors: [{ message: "MonoSchemaInstance required", expected: "MonoSchemaInstance", received: "undefined", value }] };
           }
           const validate = monoschemaInstance.validate(propertySchema)
-          return validate(value)
+          return await validate(value)
         },
       }),
       { tsType: null as unknown as InferTypeFromMonoSchema<typeof propertySchema> }
@@ -860,14 +860,14 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = monoSchema.validate(basicSchema)
-    const isValid = validate(validData)
-    const isInvalid = validate(invalidData)
+    const isValid = await validate(validData)
+    const isInvalid = await validate(invalidData)
     // Check the validation results
     expect(isValid).toStrictEqual({ valid: true, errors: [], data: validData })
     expect(isInvalid.valid).toBe(false)
   })
 
-  it('should strip unknown properties when option is set', () => {
+  it('should strip unknown properties when option is set', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -891,7 +891,7 @@ describe('monoschema', () => {
     const validate = configureMonoSchema({
       stripUnknownProperties: true, // Enable stripping of unknown properties
     }).validate(basicSchema)
-    const isAlmostValid = validate(almostValidData)
+    const isAlmostValid = await validate(almostValidData)
     // Check the validation results
     expect(isAlmostValid).toStrictEqual({
       valid: true,
@@ -906,7 +906,7 @@ describe('monoschema', () => {
     })
   })
 
-  it('should error on unknown properties when option is set', () => {
+  it('should error on unknown properties when option is set', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -930,7 +930,7 @@ describe('monoschema', () => {
     const validate = configureMonoSchema({
       errorUnknownProperties: true, // Disable stripping of unknown properties
     }).validate(basicSchema)
-    const isAlmostValid = validate(almostValidData)
+    const isAlmostValid = await validate(almostValidData)
     // Check the validation results
     expect(isAlmostValid).toStrictEqual({
       valid: false,
@@ -950,7 +950,7 @@ describe('monoschema', () => {
     expect(isAlmostValid.errors[0]!.message).toContain('Unexpected property found: extraField')
   })
 
-  it('should not strip or error on unknown properties when options are not set', () => {
+  it('should not strip or error on unknown properties when options are not set', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -972,7 +972,7 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = configureMonoSchema().validate(basicSchema)
-    const isAlmostValid = validate(almostValidData)
+    const isAlmostValid = await validate(almostValidData)
     // Check the validation results
     expect(isAlmostValid).toStrictEqual({
       valid: true,
@@ -987,7 +987,7 @@ describe('monoschema', () => {
     })
   })
 
-  it('should strip unknown properties', () => {
+  it('should strip unknown properties', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -1024,7 +1024,7 @@ describe('monoschema', () => {
     const validate = configureMonoSchema({
       stripUnknownProperties: true, // Enable stripping of unknown properties
     }).validate(basicSchema)
-    const isAlmostValid = validate(almostValidData)
+    const isAlmostValid = await validate(almostValidData)
     // Check the validation results
     expect(isAlmostValid).toStrictEqual({
       valid: true,
@@ -1044,7 +1044,7 @@ describe('monoschema', () => {
     })
   })
 
-  it('should error on nested unknown properties', () => {
+  it('should error on nested unknown properties', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -1081,7 +1081,7 @@ describe('monoschema', () => {
     const validate = configureMonoSchema({
       errorUnknownProperties: true, // Enable erroring on unknown properties
     }).validate(basicSchema)
-    const isAlmostValid = validate(almostValidData)
+    const isAlmostValid = await validate(almostValidData)
     // Check the validation results
     expect(isAlmostValid).toStrictEqual({
       valid: false,
@@ -1099,7 +1099,7 @@ describe('monoschema', () => {
     expect(isAlmostValid.valid).toBe(false)
   })
 
-  it('should not strip or error on unknown properties for nested any type', () => {
+  it('should not strip or error on unknown properties for nested any type', async () => {
     const basicSchema = {
       $type: Object,
       $properties: {
@@ -1128,7 +1128,7 @@ describe('monoschema', () => {
     }
     // Validate the data against the schema
     const validate = configureMonoSchema().validate(basicSchema)
-    const isAlmostValid = validate(validData)
+    const isAlmostValid = await validate(validData)
     // Check the validation results
     expect(isAlmostValid).toStrictEqual({
       valid: true,

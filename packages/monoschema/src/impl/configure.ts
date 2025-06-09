@@ -17,10 +17,10 @@ export function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
   
   const monoSchemaInstance: MonoSchemaInstance = {
     validate: <T extends MonoSchema>(schema: T) => 
-      (value: unknown): ValidationResult<unknown> => {
+      async (value: unknown): Promise<ValidationResult<unknown>> => {
         try {
-          const prevalidated = runPrevalidation(schema, value, "", plugins, monoSchemaInstance);
-          const validationResult = validateValue(schema, prevalidated, "", plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
+          const prevalidated = await runPrevalidation(schema, value, "", plugins, monoSchemaInstance);
+          const validationResult = await validateValue(schema, prevalidated, "", plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
           return {
             valid: validationResult.errors.length === 0,
             errors: validationResult.errors,
@@ -56,10 +56,10 @@ export function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
   
   return {
     validate: <T extends MonoSchema>(schema: T) => 
-      (value: unknown): ValidationResult<InferTypeFromMonoSchema<T>> => {
+      async (value: unknown): Promise<ValidationResult<InferTypeFromMonoSchema<T>>> => {
         try {
-          const prevalidated = runPrevalidation(schema, value, "", plugins, monoSchemaInstance);
-          const validationResult = validateValue(schema, prevalidated, "", plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
+          const prevalidated = await runPrevalidation(schema, value, "", plugins, monoSchemaInstance);
+          const validationResult = await validateValue(schema, prevalidated, "", plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
           return {
             valid: validationResult.errors.length === 0,
             errors: validationResult.errors,
