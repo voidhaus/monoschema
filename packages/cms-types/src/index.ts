@@ -1,4 +1,4 @@
-export { CmsPlugin } from "./plugin";
+export { configureCmsPlugin } from "./plugin";
 export * from "./pluginTypes";
 export * from "./blockTypes";
 export * from "./content";

@@ -75,7 +75,7 @@ const createContentResolver = resolver<CreateContentInput, CreateContentOutput>(
     // 3. Validate the input content properties against the dynamic schema
     if (input.properties) {
       const validate = context.monoschema.validate(contentPropertiesSchema);
-      const validationResult = validate(input.properties);
+      const validationResult = await validate(input.properties);
 
       if (!validationResult.valid) {
         const errorMessages = validationResult.errors
@@ -89,10 +89,6 @@ const createContentResolver = resolver<CreateContentInput, CreateContentOutput>(
         );
       }
     }
-
-    // Validate that the content key properties (if they exist) are
-    // existing content keys in the databases
-    // TODO:
 
     // 4. Store the validated content in the database
     const contentData: Content = {
