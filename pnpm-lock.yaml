@@ -29,6 +29,9 @@ importers:
       '@voidhaus/monoschema-mongo':
         specifier: workspace:*
         version: link:../../packages/monoschema-mongo
+      '@voidhaus/monoschema-transformer':
+        specifier: workspace:*
+        version: link:../../packages/monoschema-transformer
       '@voidhaus/rpc':
         specifier: workspace:*
         version: link:../../packages/rpc

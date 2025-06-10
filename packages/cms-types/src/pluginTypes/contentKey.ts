@@ -1,5 +1,3 @@
-export type CheckContentBlockExistsFn = (contentKey: string) => Promise<boolean>;
-
 export const ContentKeyObject = Object.assign(
   () => ({
     validate: async (value: unknown) => {
@@ -31,22 +29,6 @@ export const ContentKeyObject = Object.assign(
           ],
         };
       }
-      if (ContentKeyObject.contentKeyExists) {
-        const contentKeyExists = await ContentKeyObject.contentKeyExists(value);
-        if (!contentKeyExists) {
-          return {
-            valid: false,
-            errors: [
-              {
-                message: `Content key "${value}" does not exist`,
-                expected: "existing content key",
-                received: "non-existing content key",
-                value,
-              },
-            ],
-          };
-        }
-      }
       return {
         valid: true,
         errors: [],
@@ -54,7 +36,4 @@ export const ContentKeyObject = Object.assign(
     },
   }),
   { tsType: null as unknown as string },
-  {
-    contentKeyExists: null as unknown as CheckContentBlockExistsFn | null,
-  },
 )

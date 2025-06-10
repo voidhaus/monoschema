@@ -25,6 +25,7 @@
     "@voidhaus/cms-types": "workspace:*",
     "@voidhaus/monoschema": "workspace:*",
     "@voidhaus/monoschema-mongo": "workspace:*",
+    "@voidhaus/monoschema-transformer": "workspace:*",
     "@voidhaus/rpc": "workspace:*",
     "@voidhaus/rpc-hyper-express": "workspace:*",
     "mongodb": "^6.16.0"

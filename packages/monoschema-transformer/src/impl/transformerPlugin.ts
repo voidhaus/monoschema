@@ -2,8 +2,11 @@ import type { Plugin } from "@voidhaus/monoschema";
 
 // Define the types locally so this file/package is standalone
 export type TransformerObject = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   input: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   output: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transform: (value: any) => any;
 };
 export type Transformer = () => TransformerObject;
@@ -19,6 +22,7 @@ export const transformerPlugin: Plugin = {
   prevalidate: [
     (value, schema, path) => {
       // Duck-typing: check for $transformers
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const transformers = (schema as any).$transformers as readonly Transformer[] | undefined;
       if (!Array.isArray(transformers)) return value;
       let transformedValue = value;
