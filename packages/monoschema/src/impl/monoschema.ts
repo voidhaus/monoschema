@@ -11,7 +11,12 @@ export type {
   ConfigureMonoSchemaOptions,
   ValidationError,
   ValidationResult,
-  MonoSchemaInstance
+  MonoSchemaInstance,
+  // NEW: Conditional validation types
+  ConditionalRule,
+  ConditionalCondition,
+  ConditionalAction,
+  DiscriminantConfig
 } from "./types";
 export { Any } from "./types";
 

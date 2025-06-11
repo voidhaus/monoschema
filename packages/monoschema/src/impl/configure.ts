@@ -59,7 +59,7 @@ export function configureMonoSchema(options: ConfigureMonoSchemaOptions = {}) {
       async (value: unknown): Promise<ValidationResult<InferTypeFromMonoSchema<T>>> => {
         try {
           const prevalidated = await runPrevalidation(schema, value, "", plugins, monoSchemaInstance);
-          const validationResult = await validateValue(schema, prevalidated, "", plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties);
+          const validationResult = await validateValue(schema, prevalidated, "", plugins, monoSchemaInstance, stripUnknownProperties, errorUnknownProperties, prevalidated);
           return {
             valid: validationResult.errors.length === 0,
             errors: validationResult.errors,
