@@ -30,7 +30,8 @@ See `./packages/monoschema/README.md` for the MonoSchema README.
 - [ ] Check monoschema-mongo support for custom types (e.g. enum)
 - [x] Add monoschema-mongo support for ObjectID type
 - [x] Add monoschema-mongo support for String<>ObjectID transformers
-- [ ] Add monoschema-mongo support for updates - partial
-- [ ] Create monoschema-express
-- [ ] Implement working server implementation of rpc
-- [ ] Implement working client implementation of rpc
+- [x] Add monoschema-mongo support for updates - partial
+- [x] Create monoschema-express
+- [x] Implement working server implementation of rpc
+- [x] Implement working client implementation of rpc
+- [ ] MonoSchema conditional validation & inference
