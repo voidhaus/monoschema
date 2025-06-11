@@ -155,3 +155,14 @@ export const instanceOf = (ctr: new (...args: unknown[]) => unknown) => {
     },
   };
 }
+
+export const oneOf = (allowedValues: unknown[]): Constraint => {
+  return {
+    validate: (value: unknown) => {
+      return allowedValues.includes(value);
+    },
+    message: (value: unknown) => {
+      return `Value ${JSON.stringify(value)} is not one of allowed values: ${allowedValues.map(v => JSON.stringify(v)).join(', ')}`;
+    },
+  };
+}

@@ -88,8 +88,18 @@ export function applyConditionalAction(
   
   // Handle limitTo (for union types - this would need more complex logic)
   if (action.limitTo !== undefined) {
-    // This is a placeholder - would need more sophisticated implementation
-    // to handle limiting union types to specific values
+    // Add a constraint that validates the value is in the allowed list
+    const oneOfConstraint = {
+      validate: (value: unknown) => {
+        return action.limitTo!.includes(value);
+      },
+      message: (value: unknown) => {
+        return `Value ${JSON.stringify(value)} is not one of allowed values: ${action.limitTo!.map(v => JSON.stringify(v)).join(', ')}`;
+      },
+    };
+    
+    const existingConstraints = transformedSchema.$constraints || [];
+    transformedSchema.$constraints = [...existingConstraints, oneOfConstraint];
   }
   
   return transformedSchema;
@@ -98,8 +108,7 @@ export function applyConditionalAction(
 // Evaluate all conditional rules for a property and return the transformed schema
 export async function evaluateConditionalRules(
   schema: MonoSchemaProperty,
-  fullObject: unknown,
-  path: string = ''
+  fullObject: unknown
 ): Promise<MonoSchemaProperty> {
   if (!schema.$when || schema.$when.length === 0) {
     return schema;
@@ -206,7 +215,7 @@ export async function resolveEffectiveSchema(
   }
   
   // Handle conditional rules
-  const transformedSchema = await evaluateConditionalRules(schema, value, path);
+  const transformedSchema = await evaluateConditionalRules(schema, value);
   
   return { schema: transformedSchema, errors };
 }
