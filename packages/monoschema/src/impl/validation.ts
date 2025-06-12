@@ -153,7 +153,9 @@ export async function validateBuiltinType(
         // Resolve conditional validation for this property
         let effectivePropSchema = propSchema;
         if (hasConditionalValidation(propSchema)) {
-          const resolveResult = await resolveEffectiveSchema(propSchema, fullObject || value, propPath);
+          // For nested discriminated unions, pass the property value, not the full object
+          const contextValue = propSchema.$discriminant ? propValue : (fullObject || value);
+          const resolveResult = await resolveEffectiveSchema(propSchema, contextValue, propPath);
           if (resolveResult.errors.length > 0) {
             errors = errors.concat(resolveResult.errors);
             continue;
