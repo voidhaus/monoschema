@@ -75,7 +75,7 @@ export function ContentBrowser({
                 <h3 className="text-lg font-semibold mb-2">Active Branches</h3>
                 <div className="space-y-1">
                   {status.branches.length > 0 ? (
-                    status.branches.map((branch) => (
+                    status.branches.map((branch: string) => (
                       <div key={branch} className="text-sm">
                         <span className={branch === 'main' ? 'font-medium' : 'text-gray-600'}>
                           {branch}
