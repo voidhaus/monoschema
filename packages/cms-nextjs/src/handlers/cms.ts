@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { jwtVerify } from 'jose';
 import { CMSWorkflow } from '@voidhaus/cms-git';
 import { CMSConfig } from '../types.js';
 
@@ -12,6 +13,47 @@ export interface CMSHandlers {
   publish: (request: NextRequest) => Promise<NextResponse>;
 }
 
+// Utility function to decode JWT token and extract user info
+async function getUserFromToken(config: CMSConfig): Promise<{ userId: string; login: string } | null> {
+  try {
+    const headersList = await headers();
+    const sessionToken = headersList.get('x-session-token');
+    
+    console.log('CMS Handler: Getting user from token');
+    console.log('CMS Handler: Session token present:', !!sessionToken);
+    console.log('CMS Handler: Session token length:', sessionToken?.length || 0);
+    
+    if (!sessionToken) {
+      console.log('CMS Handler: No session token found in headers');
+      return null;
+    }
+
+    // Decode the JWT token using the same secret as the auth provider
+    const secretKey = new TextEncoder().encode(config.sessionSecret);
+    const { payload } = await jwtVerify(sessionToken, secretKey);
+    
+    console.log('CMS Handler: JWT payload:', payload);
+    
+    // Extract user information from the JWT payload
+    const session = payload as any;
+    
+    if (!session.login || !session.githubId) {
+      console.log('CMS Handler: Invalid session payload:', session);
+      return null;
+    }
+
+    console.log('CMS Handler: Successfully extracted user:', { userId: session.githubId.toString(), login: session.login });
+    
+    return {
+      userId: session.githubId.toString(),
+      login: session.login
+    };
+  } catch (error) {
+    console.error('CMS Handler: Error decoding JWT token:', error);
+    return null;
+  }
+}
+
 export function createCMSHandlers(config: CMSConfig): CMSHandlers {
   const createWorkflow = async (userId: string) => {
     const repoParts = config.githubRepository.split('/');
@@ -20,29 +62,29 @@ export function createCMSHandlers(config: CMSConfig): CMSHandlers {
     }
     const [owner, repo] = repoParts;
     
+    // Create a user-specific workspace path using OS temp directory
+    const os = await import('os');
+    const path = await import('path');
+    const defaultWorkspace = path.join(os.tmpdir(), 'cms-workspace', `${userId}-${repo}`);
+    
     return new CMSWorkflow({
       repositoryUrl: config.repositoryUrl || `https://github.com/${config.githubRepository}`,
-      localBasePath: config.workspacePath || '/tmp/cms-workspace',
+      localBasePath: config.workspacePath || defaultWorkspace,
       githubToken: config.githubToken,
       owner: owner!,
       repo: repo!,
-      author: {
-        name: userId,
-        email: `${userId}@users.noreply.github.com`,
-      },
     });
   };
 
   const status = async (request: NextRequest): Promise<NextResponse> => {
     try {
-      const headersList = await headers();
-      const userId = headersList.get('x-user-login');
+      const user = await getUserFromToken(config);
       
-      if (!userId) {
+      if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
-      const workflow = await createWorkflow(userId);
+      const workflow = await createWorkflow(user.userId);
       await workflow.initialize();
       const status = await workflow.getStatus();
       const branches = await workflow.getBranches();
@@ -51,12 +93,12 @@ export function createCMSHandlers(config: CMSConfig): CMSHandlers {
         repositoryUrl: config.repositoryUrl || `https://github.com/${config.githubRepository}`,
         currentBranch: status.currentBranch,
         branches: branches.filter(branch => branch.startsWith('cms/') || branch === 'main'),
-        user: userId,
+        user: user.login,
         hasUncommittedChanges: !status.isClean,
       });
     } catch (error) {
-      console.error('CMS status error:', error);
-      return NextResponse.json({ error: 'Failed to get CMS status' }, { status: 500 });
+      console.error('Status route error:', error);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
   };
 
@@ -66,10 +108,9 @@ export function createCMSHandlers(config: CMSConfig): CMSHandlers {
       const filePath = searchParams.get('path');
       const branch = searchParams.get('branch') || 'main';
       
-      const headersList = await headers();
-      const userId = headersList.get('x-user-login');
+      const user = await getUserFromToken(config);
       
-      if (!userId) {
+      if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
@@ -77,7 +118,7 @@ export function createCMSHandlers(config: CMSConfig): CMSHandlers {
         return NextResponse.json({ error: 'File path is required' }, { status: 400 });
       }
 
-      const workflow = await createWorkflow(userId);
+      const workflow = await createWorkflow(user.userId);
       await workflow.initialize();
       const content = await workflow.getFileContent(filePath, branch);
 
@@ -96,10 +137,9 @@ export function createCMSHandlers(config: CMSConfig): CMSHandlers {
 
   const postContent = async (request: NextRequest): Promise<NextResponse> => {
     try {
-      const headersList = await headers();
-      const userId = headersList.get('x-user-login');
+      const user = await getUserFromToken(config);
       
-      if (!userId) {
+      if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
@@ -110,17 +150,25 @@ export function createCMSHandlers(config: CMSConfig): CMSHandlers {
         return NextResponse.json({ error: 'File path and content are required' }, { status: 400 });
       }
 
-      const workflow = await createWorkflow(userId);
+      const workflow = await createWorkflow(user.userId);
       await workflow.initialize();
 
-      // Save as draft
-      const result = await workflow.saveDraft(userId, [
+      // Save as draft with author information
+      const result = await workflow.saveDraft(
+        user.userId, 
+        [
+          {
+            filePath,
+            content,
+            action: 'update',
+          }
+        ], 
         {
-          filePath,
-          content,
-          action: 'update',
-        }
-      ], message || `Update ${filePath}`);
+          name: user.login,
+          email: `${user.login}@users.noreply.github.com`,
+        },
+        message || `Update ${filePath}`
+      );
 
       return NextResponse.json({
         success: true,
@@ -137,10 +185,9 @@ export function createCMSHandlers(config: CMSConfig): CMSHandlers {
 
   const publish = async (request: NextRequest): Promise<NextResponse> => {
     try {
-      const headersList = await headers();
-      const userId = headersList.get('x-user-login');
+      const user = await getUserFromToken(config);
       
-      if (!userId) {
+      if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
 
@@ -151,7 +198,7 @@ export function createCMSHandlers(config: CMSConfig): CMSHandlers {
         return NextResponse.json({ error: 'Branch name is required' }, { status: 400 });
       }
 
-      const workflow = await createWorkflow(userId);
+      const workflow = await createWorkflow(user.userId);
       await workflow.initialize();
 
       // Switch to the branch and publish
@@ -160,8 +207,8 @@ export function createCMSHandlers(config: CMSConfig): CMSHandlers {
       const result = await workflow.publishChanges(branchName, {
         createPullRequest,
         autoMerge,
-        pullRequestTitle: `Content update by ${userId}`,
-        pullRequestBody: `Automated content update from CMS by ${userId}`,
+        pullRequestTitle: `Content update by ${user.login}`,
+        pullRequestBody: `Automated content update from CMS by ${user.login}`,
       });
 
       return NextResponse.json({

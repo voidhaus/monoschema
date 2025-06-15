@@ -13,6 +13,7 @@
     "@voidhaus/cms-git": "workspace:*",
     "@voidhaus/cms-nextjs": "workspace:*",
     "@voidhaus/rpc-client": "workspace:*",
+    "jose": "^5.2.0",
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

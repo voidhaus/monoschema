@@ -9,7 +9,6 @@ export default function NewAdminDashboard() {
   return (
     <AdminDashboard
       basePath="/admin"
-      organizationName="Voidhaus"
     />
   );
 }

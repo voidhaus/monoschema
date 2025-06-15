@@ -146,25 +146,42 @@ export function ContentEditor({
           </div>
         )}
 
-        {/* Quick file access */}
+        {/* Quick file access - Monorepo Structure */}
         <div className="space-y-2">
+          <div className="text-xs font-medium text-gray-500 mb-2">📁 PROJECT ROOT</div>
           <button
-            onClick={() => loadFile('docs/README.md')}
+            onClick={() => loadFile('README.md')}
             className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm"
           >
-            📄 docs/README.md
+            📄 README.md
+          </button>
+          
+          <div className="text-xs font-medium text-gray-500 mb-2 mt-4">📁 DOCUMENTATION</div>
+          <button
+            onClick={() => loadFile('apps/web/docs/index.md')}
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm"
+          >
+            📄 docs/index.md
           </button>
           <button
-            onClick={() => loadFile('docs/getting-started.md')}
+            onClick={() => loadFile('apps/web/docs/getting-started/index.md')}
             className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm"
           >
-            📄 docs/getting-started.md
+            📄 getting-started/index.md
+          </button>
+          
+          <div className="text-xs font-medium text-gray-500 mb-2 mt-4">📁 PACKAGES</div>
+          <button
+            onClick={() => loadFile('apps/web/docs/packages/monoschema/index.md')}
+            className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm"
+          >
+            📄 monoschema/index.md
           </button>
           <button
-            onClick={() => loadFile('docs/api/index.md')}
+            onClick={() => loadFile('apps/web/docs/packages/rpc/index.md')}
             className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm"
           >
-            📄 docs/api/index.md
+            📄 rpc/index.md
           </button>
         </div>
 

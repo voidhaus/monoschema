@@ -7,10 +7,6 @@ export interface WorkflowConfig {
   githubToken: string;
   owner: string;
   repo: string;
-  author: {
-    name: string;
-    email: string;
-  };
 }
 
 export interface ContentChange {
@@ -40,7 +36,6 @@ export class CMSWorkflow {
       repositoryUrl: config.repositoryUrl,
       localPath: this.workspacePath,
       accessToken: config.githubToken,
-      author: config.author,
     };
 
     const githubConfig: GitHubConfig = {
@@ -79,7 +74,11 @@ export class CMSWorkflow {
   /**
    * Apply content changes to the current branch
    */
-  async applyChanges(changes: ContentChange[], commitMessage: string): Promise<string> {
+  async applyChanges(
+    changes: ContentChange[], 
+    commitMessage: string, 
+    author?: { name: string; email: string }
+  ): Promise<string> {
     const changedFiles: string[] = [];
 
     for (const change of changes) {
@@ -96,7 +95,7 @@ export class CMSWorkflow {
       }
     }
 
-    const commitHash = await this.gitRepo.commit(commitMessage, changedFiles);
+    const commitHash = await this.gitRepo.commit(commitMessage, changedFiles, author);
     return commitHash;
   }
 
@@ -106,12 +105,13 @@ export class CMSWorkflow {
   async saveDraft(
     userId: string,
     changes: ContentChange[],
+    author: { name: string; email: string },
     message?: string
   ): Promise<{ branchName: string; commitHash: string }> {
     const branchName = await this.createContentBranch(userId);
     const commitMessage = message || `Draft: Content changes by ${userId}`;
     
-    const commitHash = await this.applyChanges(changes, commitMessage);
+    const commitHash = await this.applyChanges(changes, commitMessage, author);
     await this.gitRepo.push(branchName);
 
     return { branchName, commitHash };

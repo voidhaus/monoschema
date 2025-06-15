@@ -3,7 +3,7 @@ export interface GitRepository {
   createBranch(branchName: string, baseBranch?: string): Promise<void>;
   switchBranch(branchName: string): Promise<void>;
   getCurrentBranch(): Promise<string>;
-  commit(message: string, files: string[]): Promise<string>;
+  commit(message: string, files: string[], author?: { name: string; email: string }): Promise<string>;
   push(branch?: string): Promise<void>;
   pull(branch?: string): Promise<void>;
   getBranches(): Promise<string[]>;
@@ -19,10 +19,6 @@ export interface GitConfig {
   repositoryUrl: string;
   localPath: string;
   accessToken: string;
-  author: {
-    name: string;
-    email: string;
-  };
 }
 
 export interface CommitInfo {

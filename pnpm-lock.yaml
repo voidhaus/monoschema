@@ -78,6 +78,9 @@ importers:
       '@voidhaus/rpc-client':
         specifier: workspace:*
         version: link:../../packages/rpc-client
+      jose:
+        specifier: ^5.2.0
+        version: 5.10.0
       next:
         specifier: 15.3.2
         version: 15.3.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -195,6 +198,9 @@ importers:
       '@voidhaus/cms-git':
         specifier: workspace:*
         version: link:../cms-git
+      jose:
+        specifier: ^5.10.0
+        version: 5.10.0
       next:
         specifier: ^15.0.0
         version: 15.3.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)

@@ -9,6 +9,11 @@ export class SimpleGitRepository implements GitRepository {
 
   constructor(config: GitConfig) {
     this.config = config;
+    console.log('Initializing SimpleGitRepository with config:', config.localPath);
+    
+    // Ensure the directory exists before initializing simple-git
+    this.ensureDirectorySync();
+    
     this.git = simpleGit({
       baseDir: config.localPath,
       binary: 'git',
@@ -16,9 +21,57 @@ export class SimpleGitRepository implements GitRepository {
     });
   }
 
+  /**
+   * Synchronously ensure the directory exists (for constructor)
+   */
+  private ensureDirectorySync(): void {
+    const fs = require('fs');
+    try {
+      fs.mkdirSync(this.config.localPath, { recursive: true });
+    } catch (error) {
+      // Directory might already exist, that's fine
+      if (error instanceof Error && 'code' in error && error.code !== 'EEXIST') {
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Ensure the workspace directory exists and initialize if needed
+   */
+  private async ensureWorkspace(): Promise<void> {
+    try {
+      // Check if directory exists and has .git folder
+      await fs.access(join(this.config.localPath, '.git'));
+    } catch {
+      // Directory doesn't exist or is not a git repo, need to clone
+      console.log('Workspace does not exist, need to clone repository');
+      await this.clone();
+    }
+  }
+
   async clone(): Promise<void> {
-    // Ensure the directory exists
+    // Ensure the parent directory exists
     await fs.mkdir(dirname(this.config.localPath), { recursive: true });
+    
+    // Check if target directory already exists
+    try {
+      await fs.access(this.config.localPath);
+      // Directory exists, check if it's a git repo
+      try {
+        await fs.access(join(this.config.localPath, '.git'));
+        console.log('Repository already exists, skipping clone');
+        return;
+      } catch {
+        // Directory exists but is not a git repo, remove it
+        await fs.rm(this.config.localPath, { recursive: true, force: true });
+      }
+    } catch {
+      // Directory doesn't exist, that's fine
+    }
+
+    // Ensure target directory exists
+    await fs.mkdir(this.config.localPath, { recursive: true });
 
     // Clone with authentication
     const repoUrlWithAuth = this.config.repositoryUrl.replace(
@@ -29,13 +82,11 @@ export class SimpleGitRepository implements GitRepository {
     await this.git.clone(repoUrlWithAuth, this.config.localPath, [
       '--depth=1', // Shallow clone for better performance
     ]);
-
-    // Configure git user
-    await this.git.addConfig('user.name', this.config.author.name);
-    await this.git.addConfig('user.email', this.config.author.email);
   }
 
   async createBranch(branchName: string, baseBranch = 'main'): Promise<void> {
+    await this.ensureWorkspace();
+    
     // Ensure we're on the base branch
     await this.switchBranch(baseBranch);
     await this.pull(baseBranch);
@@ -45,6 +96,8 @@ export class SimpleGitRepository implements GitRepository {
   }
 
   async switchBranch(branchName: string): Promise<void> {
+    await this.ensureWorkspace();
+    
     const branches = await this.getBranches();
     
     if (branches.includes(branchName)) {
@@ -56,18 +109,28 @@ export class SimpleGitRepository implements GitRepository {
   }
 
   async getCurrentBranch(): Promise<string> {
+    await this.ensureWorkspace();
+    
     const status = await this.git.status();
     return status.current || 'unknown';
   }
 
-  async commit(message: string, files: string[]): Promise<string> {
+  async commit(message: string, files: string[], author?: { name: string; email: string }): Promise<string> {
     // Add files to staging area
     for (const file of files) {
       await this.git.add(file);
     }
 
-    // Commit changes
-    const result = await this.git.commit(message);
+    // Commit changes with specific author if provided
+    let result;
+    if (author) {
+      result = await this.git.commit(message, undefined, {
+        '--author': `${author.name} <${author.email}>`,
+      });
+    } else {
+      result = await this.git.commit(message);
+    }
+    
     return result.commit;
   }
 
@@ -92,6 +155,8 @@ export class SimpleGitRepository implements GitRepository {
   }
 
   async getBranches(): Promise<string[]> {
+    await this.ensureWorkspace();
+    
     const summary = await this.git.branch(['-a']);
     return summary.all.map(branch => branch.replace('remotes/origin/', ''));
   }
@@ -209,6 +274,8 @@ export class SimpleGitRepository implements GitRepository {
    * Check if repository is clean (no uncommitted changes)
    */
   async isClean(): Promise<boolean> {
+    await this.ensureWorkspace();
+    
     const status = await this.git.status();
     return status.isClean();
   }

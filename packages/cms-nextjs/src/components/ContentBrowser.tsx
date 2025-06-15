@@ -23,6 +23,7 @@ export function ContentBrowser({
     try {
       const response = await fetch(statusEndpoint);
       const data = await response.json();
+      console.log(data)
       setStatus(data);
     } catch (error) {
       console.error('Failed to fetch status:', error);
@@ -129,15 +130,18 @@ export function ContentBrowser({
 
           {/* Quick Access to Common Files */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4">Quick Access</h2>
+            <h2 className="text-2xl font-bold mb-4">Quick Access - Monorepo Documentation</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                { name: 'README.md', path: 'docs/README.md', description: 'Main documentation' },
-                { name: 'Getting Started', path: 'docs/getting-started.md', description: 'Introduction guide' },
-                { name: 'API Reference', path: 'docs/api/index.md', description: 'API documentation' },
-                { name: 'MonoSchema Docs', path: 'docs/monoschema/index.md', description: 'MonoSchema library docs' },
-                { name: 'RPC Docs', path: 'docs/rpc/index.md', description: 'RPC library docs' },
-                { name: 'Examples', path: 'docs/examples/index.md', description: 'Code examples' },
+                { name: 'Main README', path: 'README.md', description: 'Project overview' },
+                { name: 'Documentation Hub', path: 'apps/web/docs/index.md', description: 'Main documentation entry' },
+                { name: 'MonoSchema Guide', path: 'apps/web/docs/packages/monoschema/index.md', description: 'MonoSchema documentation' },
+                { name: 'RPC Guide', path: 'apps/web/docs/packages/rpc/index.md', description: 'RPC documentation' },
+                { name: 'CMS Guide', path: 'apps/web/docs/packages/cms/index.md', description: 'CMS documentation' },
+                { name: 'Getting Started', path: 'apps/web/docs/getting-started/index.md', description: 'Quick start guide' },
+                { name: 'Examples', path: 'apps/web/docs/examples/index.md', description: 'Code examples' },
+                { name: 'API Reference', path: 'apps/web/docs/api/index.md', description: 'Complete API docs' },
+                { name: 'Contributing', path: 'apps/web/docs/guides/contributing.md', description: 'Contribution guide' },
               ].map((file) => (
                 <a
                   key={file.path}

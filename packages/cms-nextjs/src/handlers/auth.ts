@@ -44,9 +44,11 @@ export function createAuthHandlers(config: CMSConfig): AuthHandlers {
     }
 
     try {
+      console.log('Auth callback: Starting handleCallback for code:', code?.substring(0, 10) + '...');
       const { sessionToken, user } = await authProvider.handleCallback(code);
+      console.log('Auth callback: Got session token for user:', user.login);
 
-      // Set session cookie
+      // Set session cookie using cookies()
       const cookieStore = await cookies();
       cookieStore.set('cms_session', sessionToken, {
         httpOnly: true,
@@ -55,7 +57,8 @@ export function createAuthHandlers(config: CMSConfig): AuthHandlers {
         maxAge: 24 * 60 * 60, // 24 hours
         path: '/',
       });
-
+      
+      console.log('Auth callback: Cookie set using cookies().set(), redirecting to:', basePath);
       return NextResponse.redirect(new URL(basePath, request.url));
     } catch (error) {
       console.error('Auth callback error:', error);
