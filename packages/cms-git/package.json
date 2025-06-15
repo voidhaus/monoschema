@@ -1,0 +1,28 @@
+{
+  "name": "@voidhaus/cms-git",
+  "version": "0.1.0",
+  "description": "Git workflow management for the CMS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@voidhaus/cms-core": "workspace:*",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@voidhaus/eslint-config": "workspace:*",
+    "@voidhaus/typescript-config": "workspace:*",
+    "@types/node": "^20.10.0",
+    "@types/uuid": "^9.0.7",
+    "eslint": "^8.55.0",
+    "typescript": "^5.3.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
