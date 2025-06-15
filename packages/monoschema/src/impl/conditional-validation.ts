@@ -1,6 +1,5 @@
 // Conditional validation utilities for MonoSchema
 import type { 
-  ConditionalRule, 
   ConditionalCondition, 
   ConditionalAction,
   DiscriminantConfig,
