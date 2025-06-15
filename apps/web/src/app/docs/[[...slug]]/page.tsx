@@ -1,4 +1,5 @@
 import GradientText from "@/components/GradientText";
+import Link from "next/link";
 // import { client } from "@/providers/rpc";
 // import { headers } from "next/headers";
 
@@ -49,12 +50,12 @@ export default async function DocsPage() {
                 <span className="px-3 py-1 bg-[#F59E42]/20 text-[#F59E42] rounded-full text-sm">Fast</span>
               </div>
               <div className="flex gap-3">
-                <a href="/docs/monoschema" className="px-4 py-2 bg-gradient-to-r from-[#00e5ff] to-[#7C3AED] text-white rounded-lg font-medium hover:opacity-90 transition">
+                <Link href="/docs/monoschema" className="px-4 py-2 bg-gradient-to-r from-[#00e5ff] to-[#7C3AED] text-white rounded-lg font-medium hover:opacity-90 transition">
                   Get Started
-                </a>
-                <a href="/docs/monoschema/api" className="px-4 py-2 border border-[#232336] text-gray-300 rounded-lg font-medium hover:border-[#00e5ff]/50 transition">
+                </Link>
+                <Link href="/docs/monoschema/api" className="px-4 py-2 border border-[#232336] text-gray-300 rounded-lg font-medium hover:border-[#00e5ff]/50 transition">
                   API Reference
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -77,12 +78,12 @@ export default async function DocsPage() {
                 <span className="px-3 py-1 bg-[#00e5ff]/20 text-[#00e5ff] rounded-full text-sm">Modern</span>
               </div>
               <div className="flex gap-3">
-                <a href="/docs/rpc" className="px-4 py-2 bg-gradient-to-r from-[#7C3AED] to-[#F59E42] text-white rounded-lg font-medium hover:opacity-90 transition">
+                <Link href="/docs/rpc" className="px-4 py-2 bg-gradient-to-r from-[#7C3AED] to-[#F59E42] text-white rounded-lg font-medium hover:opacity-90 transition">
                   Get Started
-                </a>
-                <a href="/docs/rpc/api" className="px-4 py-2 border border-[#232336] text-gray-300 rounded-lg font-medium hover:border-[#7C3AED]/50 transition">
+                </Link>
+                <Link href="/docs/rpc/api" className="px-4 py-2 border border-[#232336] text-gray-300 rounded-lg font-medium hover:border-[#7C3AED]/50 transition">
                   API Reference
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -103,9 +104,9 @@ export default async function DocsPage() {
                 <span className="px-3 py-1 bg-[#00e5ff]/20 text-[#00e5ff] rounded-full text-sm">Transformers</span>
               </div>
               <div className="flex gap-3">
-                <a href="/docs/monoschema/plugins" className="px-4 py-2 bg-gradient-to-r from-[#F59E42] to-[#00e5ff] text-white rounded-lg font-medium hover:opacity-90 transition">
+                <Link href="/docs/monoschema/plugins" className="px-4 py-2 bg-gradient-to-r from-[#F59E42] to-[#00e5ff] text-white rounded-lg font-medium hover:opacity-90 transition">
                   Explore Plugins
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -127,9 +128,9 @@ export default async function DocsPage() {
                 <span className="px-3 py-1 bg-[#F59E42]/20 text-[#F59E42] rounded-full text-sm">Best Practices</span>
               </div>
               <div className="flex gap-3">
-                <a href="/docs/examples" className="px-4 py-2 bg-gradient-to-r from-[#00e5ff] via-[#7C3AED] to-[#F59E42] text-white rounded-lg font-medium hover:opacity-90 transition">
+                <Link href="/docs/examples" className="px-4 py-2 bg-gradient-to-r from-[#00e5ff] via-[#7C3AED] to-[#F59E42] text-white rounded-lg font-medium hover:opacity-90 transition">
                   View Examples
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -144,25 +145,25 @@ export default async function DocsPage() {
             <div>
               <h3 className="text-lg font-semibold mb-3 text-[#00e5ff]">Getting Started</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="/docs/installation" className="hover:text-white transition">Installation</a></li>
-                <li><a href="/docs/quick-start" className="hover:text-white transition">Quick Start</a></li>
-                <li><a href="/docs/concepts" className="hover:text-white transition">Core Concepts</a></li>
+                <li><Link href="/docs/installation" className="hover:text-white transition">Installation</Link></li>
+                <li><Link href="/docs/quick-start" className="hover:text-white transition">Quick Start</Link></li>
+                <li><Link href="/docs/concepts" className="hover:text-white transition">Core Concepts</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-3 text-[#7C3AED]">API Reference</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="/docs/api/monoschema" className="hover:text-white transition">MonoSchema API</a></li>
-                <li><a href="/docs/api/rpc" className="hover:text-white transition">RPC API</a></li>
-                <li><a href="/docs/api/types" className="hover:text-white transition">Type Definitions</a></li>
+                <li><Link href="/docs/api/monoschema" className="hover:text-white transition">MonoSchema API</Link></li>
+                <li><Link href="/docs/api/rpc" className="hover:text-white transition">RPC API</Link></li>
+                <li><Link href="/docs/api/types" className="hover:text-white transition">Type Definitions</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-3 text-[#F59E42]">Community</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><a href="https://github.com/voidhaus" className="hover:text-white transition">GitHub</a></li>
-                <li><a href="/docs/contributing" className="hover:text-white transition">Contributing</a></li>
-                <li><a href="/docs/changelog" className="hover:text-white transition">Changelog</a></li>
+                <li><Link href="/docs/contributing" className="hover:text-white transition">Contributing</Link></li>
+                <li><Link href="/docs/changelog" className="hover:text-white transition">Changelog</Link></li>
               </ul>
             </div>
           </div>
