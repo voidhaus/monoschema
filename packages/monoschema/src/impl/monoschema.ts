@@ -1,7 +1,10 @@
 // Main module for MonoSchema - re-exports from modular files
 
 // Re-export type inference
-export type { InferTypeFromMonoSchema } from "./type-inference";
+// export type { InferTypeFromMonoSchema } from "./type-inference";
+export type {
+  InferTypeFromMonoSchemaWithConditional as InferTypeFromMonoSchema
+} from "./conditional-type-inference";
 
 // Re-export core types
 export type {
@@ -16,7 +19,7 @@ export type {
   ConditionalRule,
   ConditionalCondition,
   ConditionalAction,
-  DiscriminantConfig
+  DiscriminantConfig,
 } from "./types";
 export { Any } from "./types";
 
@@ -24,7 +27,7 @@ export { Any } from "./types";
 export type {
   InferredPropertyPath,
   ValueAtPath,
-  MonogSchemaPropertPath
+  MonogSchemaPropertPath,
 } from "./property-paths";
 
 // Re-export main configuration function
