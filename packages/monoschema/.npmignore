@@ -1,0 +1,67 @@
+# Source files (only dist/ should be published)
+src/
+*.ts
+*.tsx
+!*.d.ts
+
+# Development and build files
+.turbo/
+node_modules/
+.vscode/
+.idea/
+*.log
+*.tsbuildinfo
+tsconfig.json
+tsconfig.*.json
+eslint.config.*
+.eslintrc.*
+.eslintignore
+
+# Test files
+*.test.*
+*.spec.*
+__tests__/
+test/
+tests/
+coverage/
+.nyc_output/
+
+# Development dependencies and configs
+prettier.config.*
+.prettierrc.*
+.prettierignore
+vitest.config.*
+jest.config.*
+.babelrc*
+webpack.config.*
+rollup.config.*
+
+# Git and version control
+.git/
+.gitignore
+.gitattributes
+
+# Environment and local files
+.env*
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Documentation that shouldn't be published
+docs/
+documentation/
+examples/
+.github/
+
+# Changesets (for monorepo)
+.changeset/
+
+# Turbo
+.turbo
+
+# Temporary files
+tmp/
+temp/
+*.tmp
